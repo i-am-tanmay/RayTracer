@@ -10,8 +10,8 @@
 #pragma warning(pop)
 
 #include "vec3.h"
-#include "color.h"
-#include "ray.h"
+#include "helper.h"
+#include "Ray.h"
 
 int main(int, char**)
 {
@@ -42,9 +42,9 @@ int main(int, char**)
 			precision u = static_cast<precision>(ii) / (img_width - 1);
 			precision v = static_cast<precision>(i) / (img_height - 1);
 
-			ray r{ cam_origin, viewport_bottomleft - cam_origin + u * viewport_horizontal + v * viewport_vertical };
+			Ray r{ cam_origin, viewport_bottomleft - cam_origin + u * viewport_horizontal + v * viewport_vertical };
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], ray_gradient_bg(r));
+			write_color(&img_rgb[(i * img_width + ii) * 3], ray_color(r));
 		}
 	}
 

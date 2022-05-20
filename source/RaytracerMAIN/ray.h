@@ -2,16 +2,16 @@
 
 #include "vec3.h"
 
-class ray final
+class Ray final
 {
 public:
-	ray() = default;
-	ray(const vec3& origin, const vec3& direction) :_origin{ origin }, _direction{ direction } {}
+	Ray() = default;
+	Ray(const vec3& origin, const vec3& direction) :_origin{ origin }, _direction{ direction } {}
 
-	ray(const ray&) = default;
-	ray& operator=(const ray&) = default;
-	ray(ray&&) noexcept = default;
-	ray& operator=(ray&&) noexcept = default;
+	Ray(const Ray&) = default;
+	Ray& operator=(const Ray&) = default;
+	Ray(Ray&&) noexcept = default;
+	Ray& operator=(Ray&&) noexcept = default;
 
 	const vec3& origin{ _origin };
 	const vec3& direction{ _direction };

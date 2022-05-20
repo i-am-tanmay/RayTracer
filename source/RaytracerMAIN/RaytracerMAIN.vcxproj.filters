@@ -3,18 +3,27 @@
   <ItemGroup>
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Render-ables</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="stb_image_write.h">
       <Filter>ExternalLibraries</Filter>
     </ClInclude>
-    <ClInclude Include="color.h">
+    <ClInclude Include="helper.h">
       <Filter>Helper</Filter>
     </ClInclude>
-    <ClInclude Include="ray.h" />
+    <ClInclude Include="Ray.h" />
     <ClInclude Include="vec3.h">
       <Filter>Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderObject.h">
+      <Filter>Render-ables</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Render-ables</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -23,6 +32,9 @@
     </Filter>
     <Filter Include="Helper">
       <UniqueIdentifier>{a87de268-e09b-4164-8cb7-d227ce0d6d2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render-ables">
+      <UniqueIdentifier>{d3b9ed67-f67b-4dd7-be29-549c2f255c8e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
