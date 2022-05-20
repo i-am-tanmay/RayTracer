@@ -31,7 +31,7 @@ int main(int, char**)
 	const vec3 cam_origin{ 0, 0, 0 };
 	const vec3 viewport_horizontal{ viewport_width, 0, 0 };
 	const vec3 viewport_vertical{ 0, viewport_height, 0 };
-	const vec3 viewport_bottomleft{ cam_origin.x - viewport_width / 2,cam_origin.y - viewport_height / 2 , cam_origin.z - focal_length };
+	const vec3 viewport_bottomleft{ cam_origin.x() - viewport_width / 2,cam_origin.y() - viewport_height / 2 , cam_origin.z() - focal_length };
 
 	// RENDER IMAGE
 	for (std::size_t i = 0; i < img_height; ++i)
