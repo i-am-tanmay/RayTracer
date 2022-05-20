@@ -13,8 +13,8 @@ public:
 	ray(ray&&) noexcept = default;
 	ray& operator=(ray&&) noexcept = default;
 
-	const vec3& origin() const { return _origin; }
-	const vec3& direction() const { return _direction; }
+	const vec3& origin{ _origin };
+	const vec3& direction{ _direction };
 
 	vec3 at(const precision& val) const { return _origin + val * _direction; }
 

@@ -9,20 +9,17 @@
     <ClInclude Include="stb_image_write.h">
       <Filter>ExternalLibraries</Filter>
     </ClInclude>
-    <ClInclude Include="vec3.h">
-      <Filter>Storage</Filter>
-    </ClInclude>
     <ClInclude Include="color.h">
       <Filter>Helper</Filter>
     </ClInclude>
     <ClInclude Include="ray.h" />
+    <ClInclude Include="vec3.h">
+      <Filter>Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ExternalLibraries">
       <UniqueIdentifier>{5c9064f9-5cfd-485e-8ca8-51919e37457e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Storage">
-      <UniqueIdentifier>{f88c297a-4554-4458-af5b-f83e109a6e40}</UniqueIdentifier>
     </Filter>
     <Filter Include="Helper">
       <UniqueIdentifier>{a87de268-e09b-4164-8cb7-d227ce0d6d2e}</UniqueIdentifier>
@@ -30,7 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="vec3.inl">
-      <Filter>Storage</Filter>
+      <Filter>Helper</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -29,9 +29,9 @@ int main(int, char**)
 	const precision focal_length = 1.0;
 
 	const vec3 cam_origin{ 0, 0, 0 };
-	const vec3 horizontal{ viewport_width, 0, 0 };
-	const vec3 vertical{ 0, viewport_height, 0 };
-	const vec3 lower_left_corner = cam_origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
+	const vec3 viewport_horizontal{ viewport_width, 0, 0 };
+	const vec3 viewport_vertical{ 0, viewport_height, 0 };
+	const vec3 viewport_bottomleft{ cam_origin.x - viewport_width / 2,cam_origin.y - viewport_height / 2 , cam_origin.z - focal_length };
 
 	// RENDER IMAGE
 	for (std::size_t i = 0; i < img_height; ++i)
@@ -39,15 +39,17 @@ int main(int, char**)
 		std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
 		for (std::size_t ii = 0; ii < img_width; ++ii)
 		{
-			double r = static_cast<double>(i) / (img_height - 1); assert(r >= 0); assert(r <= 1);
-			double g = static_cast<double>(ii) / (img_width - 1); assert(g >= 0); assert(g <= 1);
-			double b = 1.0 - std::max(r, g); assert(b >= 0); assert(b <= 1);
+			precision u = static_cast<precision>(ii) / (img_width - 1);
+			precision v = static_cast<precision>(i) / (img_height - 1);
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], vec3{ r,g,b });
+			ray r{ cam_origin, viewport_bottomleft - cam_origin + u * viewport_horizontal + v * viewport_vertical };
+
+			write_color(&img_rgb[(i * img_width + ii) * 3], ray_gradient_bg(r));
 		}
 	}
 
 	std::cout << "\ntime to write to file xo\n";
+	stbi_flip_vertically_on_write(true);
 	if (stbi_write_png("../../outputimage.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) throw std::runtime_error("couldn't write to PNG lolol");
 	std::cout << "fin.\n";
 
