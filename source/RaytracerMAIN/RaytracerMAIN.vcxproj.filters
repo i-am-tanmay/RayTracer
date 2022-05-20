@@ -15,6 +15,7 @@
     <ClInclude Include="color.h">
       <Filter>Helper</Filter>
     </ClInclude>
+    <ClInclude Include="ray.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ExternalLibraries">
@@ -26,5 +27,10 @@
     <Filter Include="Helper">
       <UniqueIdentifier>{a87de268-e09b-4164-8cb7-d227ce0d6d2e}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vec3.inl">
+      <Filter>Storage</Filter>
+    </None>
   </ItemGroup>
 </Project>
