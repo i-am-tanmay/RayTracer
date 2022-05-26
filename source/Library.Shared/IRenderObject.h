@@ -6,16 +6,16 @@ namespace Library
 {
 	struct HitInfo
 	{
-		pos3 hitpos;
+		pos3 pos;
 		precision ray_t;
 
 		vec3 normal;
-		bool _isFrontFace;
+		bool isFrontFace;
 
 		inline void hit_updatenormal(const Ray& ray, const vec3& outward_normal)
 		{
-			_isFrontFace = dot(ray.direction(), outward_normal) < 0;
-			normal = _isFrontFace ? outward_normal : -outward_normal;
+			isFrontFace = dot(ray.direction(), outward_normal) < 0;
+			normal = isFrontFace ? outward_normal : -outward_normal;
 		}
 	};
 

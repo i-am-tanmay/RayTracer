@@ -1,17 +1,42 @@
 #pragma once
 
 #include <limits>
+#include <random>
 
 namespace Library
 {
+	// properties
+
 	using precision = double;
+	const precision aspect_ratio = 16.0 / 9.0;
 
 	// constants
-	const double infinity = std::numeric_limits<double>::infinity();
-	const double pi = 3.1415926535897932385;
+
+	const precision infinity = std::numeric_limits<precision>::infinity();
+	const precision pi = 3.1415926535897932385;
 
 	// utility
-	inline double degrees_to_radians(double degrees) {
+
+	inline precision degrees_to_radians(precision degrees)
+	{
 		return degrees * pi / 180.0;
+	}
+
+	inline precision get_random()
+	{
+		static std::uniform_real_distribution<precision> distribution(0.0, 1.0);
+		static std::minstd_rand generator;
+		return distribution(generator);
+	}
+
+	inline precision get_random(precision min_included, precision max_excluded)
+	{
+		return ((max_excluded - min_included) * get_random()) + min_included;
+	}
+
+	inline precision clamp(precision val, precision min, precision max)
+	{
+		const precision res = (val < min) ? min : val;
+		return (res > max) ? max : res;
 	}
 }

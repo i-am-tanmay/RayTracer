@@ -17,21 +17,21 @@ namespace Library
 		vec3(vec3&& rhs) noexcept = default;
 		vec3& operator=(vec3&& rhs) noexcept = default;
 
-		const precision& x() const { return _vec[0]; };
-		const precision& r() const { return _vec[0]; };
+		inline const precision& x() const { return _vec[0]; };
+		inline const precision& r() const { return _vec[0]; };
 
-		const precision& y() const { return _vec[1]; };
-		const precision& g() const { return _vec[1]; };
+		inline const precision& y() const { return _vec[1]; };
+		inline const precision& g() const { return _vec[1]; };
 
-		const precision& z() const { return _vec[2]; };
-		const precision& b() const { return _vec[2]; };
+		inline const precision& z() const { return _vec[2]; };
+		inline const precision& b() const { return _vec[2]; };
 
-		vec3 operator-() const { return vec3(-_vec[0], -_vec[1], -_vec[2]); }
+		inline vec3 operator-() const { return vec3{ -_vec[0], -_vec[1], -_vec[2] }; }
 
-		precision& operator[](int i) { return _vec[i]; }
-		const precision& operator[](int i) const { return _vec[i]; }
+		inline precision& operator[](int i) { return _vec[i]; }
+		inline const precision& operator[](int i) const { return _vec[i]; }
 
-		vec3& operator+=(const vec3& rhs)
+		inline vec3& operator+=(const vec3& rhs)
 		{
 			_vec[0] += rhs._vec[0];
 			_vec[1] += rhs._vec[1];
@@ -40,7 +40,7 @@ namespace Library
 			return *this;
 		}
 
-		vec3& operator*=(const precision& val)
+		inline vec3& operator*=(const precision& val)
 		{
 			_vec[0] *= val;
 			_vec[1] *= val;
@@ -48,15 +48,18 @@ namespace Library
 			return *this;
 		}
 
-		vec3& operator/=(const precision& val)
+		inline vec3& operator/=(const precision& val)
 		{
 			return this->operator*=(1 / val);
 		}
 
-		precision length() const { return std::sqrt(_vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]); }
-		precision length_squared() const { return _vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]; }
+		inline precision length() const { return std::sqrt(_vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]); }
+		inline precision length_squared() const { return _vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]; }
 
-		friend void write_color(std::uint8_t* out, const vec3& pixel_color);
+		inline static vec3 random() { return vec3(get_random(), get_random(), get_random()); }
+		inline static vec3 random(precision min_included, precision max_excluded) { return vec3(get_random(min_included, max_excluded), get_random(min_included, max_excluded), get_random(min_included, max_excluded)); }
+
+		friend void write_color(std::uint8_t* out, const vec3& pixel_color, std::size_t samples);
 		friend vec3 operator+(const vec3& lhs, const vec3& rhs);
 		friend vec3 operator-(const vec3& lhs, const vec3& rhs);
 		friend vec3 operator*(const vec3& lhs, const vec3& rhs);
@@ -83,6 +86,8 @@ namespace Library
 	vec3 cross(const vec3& lhs, const vec3& rhs);
 
 	vec3 unit_vector(const vec3& vec);
+
+	vec3 random_in_unit_sphere();
 
 	// alias
 	using color = vec3;

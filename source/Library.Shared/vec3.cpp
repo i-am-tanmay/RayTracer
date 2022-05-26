@@ -29,4 +29,13 @@ namespace Library
 	}
 
 	vec3 unit_vector(const vec3& vec) { return vec / vec.length(); }
+
+	vec3 random_in_unit_sphere()
+	{
+		while (true)
+		{
+			vec3 rend_vec = vec3::random(-1, 1);
+			if (rend_vec.length_squared() < 1) return rend_vec;
+		}
+	}
 }

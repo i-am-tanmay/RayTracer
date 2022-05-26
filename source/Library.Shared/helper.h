@@ -9,21 +9,30 @@
 
 namespace Library
 {
-	void write_color(std::uint8_t* out, const vec3& pixel_color)
+	void write_color(std::uint8_t* out, const vec3& pixel_color, std::size_t samples)
 	{
-		out[0] = static_cast<std::uint8_t>(precision{ 255.0 } *pixel_color._vec[0]);
-		out[1] = static_cast<std::uint8_t>(precision{ 255.0 } *pixel_color._vec[1]);
-		out[2] = static_cast<std::uint8_t>(precision{ 255.0 } *pixel_color._vec[2]);
+		const precision scale{ 1.0 / samples };
+
+		// sqrt for gamma 2.0 correction
+		out[0] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[0] * scale), 0, 0.999));
+		out[1] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[1] * scale), 0, 0.999));
+		out[2] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[2] * scale), 0, 0.999));
 	}
 
-	color ray_color(const Ray& ray, const IRenderObject& world)
+	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
 	{
+		if (bounce_limit == 0) return color{ 0,0,0 };
+
 		HitInfo hitinfo;
-		if(world.hit(ray,0,infinity, hitinfo))return 0.5 * color{ hitinfo.normal.x() + 1, hitinfo.normal.y() + 1, hitinfo.normal.z() + 1 };
+		if (world.hit(ray, 0.001, infinity, hitinfo))
+		{
+			pos3 target = hitinfo.pos + hitinfo.normal + random_in_unit_sphere();
+			return 0.5 * ray_color(Ray{ hitinfo.pos, target - hitinfo.pos }, world, bounce_limit - 1);
+		}
 
 		// GRADIENT
 		vec3 direction = unit_vector(ray.direction());
-		precision t = precision{ 0.5 } *(direction.y() + 1);
+		precision t = 0.5 * (direction.y() + 1);
 		return (1 - t) * color { 1, 1, 1 } + t * color{ 0.5, 0.7, 1.0 };	// lerp white to blue
 	}
 }

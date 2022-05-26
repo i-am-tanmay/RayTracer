@@ -33,8 +33,8 @@ namespace Library
         }
 
         hitinfo.ray_t = root;
-        hitinfo.hitpos = ray.at(hitinfo.ray_t);
-        hitinfo.hit_updatenormal(ray, ((hitinfo.hitpos - _center) / _radius));
+        hitinfo.pos = ray.at(hitinfo.ray_t);
+        hitinfo.hit_updatenormal(ray, ((hitinfo.pos - _center) / _radius));
 
         return true;
     }

@@ -15,6 +15,8 @@
 #include "helper.h"
 #include "Ray.h"
 
+#include "Camera.h"
+
 #include "RenderObjectList.h"
 #include "Sphere.h"
 
@@ -23,22 +25,15 @@ using namespace Library;
 int main(int, char**)
 {
 	// OUTPUT IMAGE
-	const precision aspect_ratio = 16.0 / 9.0;
-	const std::size_t img_width = 1920;
+	const std::size_t img_width = 1280;
 	const std::size_t img_height = static_cast<int>(img_width / aspect_ratio);
 
 	std::uint8_t* img_rgb = new std::uint8_t[img_width * img_height * 3];
 	assert(img_rgb != nullptr);
 
-	// CAMERA
-	const precision viewport_height = 2.0;
-	const precision viewport_width = aspect_ratio * viewport_height;
-	const precision focal_length = 1.0;
-
-	const vec3 cam_origin{ 0, 0, 0 };
-	const vec3 viewport_horizontal{ viewport_width, 0, 0 };
-	const vec3 viewport_vertical{ 0, viewport_height, 0 };
-	const vec3 viewport_bottomleft{ cam_origin.x() - viewport_width / 2,cam_origin.y() - viewport_height / 2 , cam_origin.z() - focal_length };
+	// PROPERTIES
+	const std::size_t samples_per_pixel = 100;
+	const std::size_t bounce_limit = 50;
 
 	// WORLD
 	RenderObjectList world;
@@ -46,24 +41,30 @@ int main(int, char**)
 	world.add(std::make_shared<Sphere>(pos3(0, -100.5, -1), 100));
 
 	// RENDER IMAGE
+	Camera camera{ 2.0, 1.0 };
+
 	for (std::size_t i = 0; i < img_height; ++i)
 	{
 		std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
 		for (std::size_t ii = 0; ii < img_width; ++ii)
 		{
-			precision u = static_cast<precision>(ii) / (img_width - 1);
-			precision v = static_cast<precision>(i) / (img_height - 1);
+			color pixel_color{ 0,0,0 };
 
-			Ray r{ cam_origin, viewport_bottomleft - cam_origin + u * viewport_horizontal + v * viewport_vertical };
+			for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+			{
+				precision u = (ii + get_random()) / (img_width - 1);
+				precision v = (i + get_random()) / (img_height - 1);
+				pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
+			}
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], ray_color(r, world));
+			write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
 		}
 	}
 
 	std::cout << "\ntime to write to file xo\n";
 	stbi_flip_vertically_on_write(true);
-	if (stbi_write_png("../../outputimage.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) throw std::runtime_error("couldn't write to PNG lolol");
-	std::cout << "fin.\n";
+	if (stbi_write_png("../../outputimage.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout<< "couldn't write to PNG lolol";
+	else std::cout << "fin.\n";
 
 	// CLEANUP
 	delete[] img_rgb;
