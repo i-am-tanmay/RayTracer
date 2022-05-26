@@ -9,9 +9,16 @@
 #include "stb_image_write.h"
 #pragma warning(pop)
 
+#include "common.h"
+
 #include "vec3.h"
 #include "helper.h"
 #include "Ray.h"
+
+#include "RenderObjectList.h"
+#include "Sphere.h"
+
+using namespace Library;
 
 int main(int, char**)
 {
@@ -23,7 +30,7 @@ int main(int, char**)
 	std::uint8_t* img_rgb = new std::uint8_t[img_width * img_height * 3];
 	assert(img_rgb != nullptr);
 
-	//CAMERA
+	// CAMERA
 	const precision viewport_height = 2.0;
 	const precision viewport_width = aspect_ratio * viewport_height;
 	const precision focal_length = 1.0;
@@ -32,6 +39,11 @@ int main(int, char**)
 	const vec3 viewport_horizontal{ viewport_width, 0, 0 };
 	const vec3 viewport_vertical{ 0, viewport_height, 0 };
 	const vec3 viewport_bottomleft{ cam_origin.x() - viewport_width / 2,cam_origin.y() - viewport_height / 2 , cam_origin.z() - focal_length };
+
+	// WORLD
+	RenderObjectList world;
+	world.add(std::make_shared<Sphere>(pos3(0, 0, -1), 0.5));
+	world.add(std::make_shared<Sphere>(pos3(0, -100.5, -1), 100));
 
 	// RENDER IMAGE
 	for (std::size_t i = 0; i < img_height; ++i)
@@ -44,7 +56,7 @@ int main(int, char**)
 
 			Ray r{ cam_origin, viewport_bottomleft - cam_origin + u * viewport_horizontal + v * viewport_vertical };
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], ray_color(r));
+			write_color(&img_rgb[(i * img_width + ii) * 3], ray_color(r, world));
 		}
 	}
 

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{53516380-b0da-48b9-8765-66c6f548ec79}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)common.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IRenderObject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ray.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RenderObjectList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)vec3.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RenderObjectList.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)vec3.cpp" />
+  </ItemGroup>
+</Project>

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{94ea1b5a-4c94-4f5e-b974-942e9d1af1c1}</ProjectGuid>
-    <RootNamespace>RaytracerMAIN</RootNamespace>
+    <ProjectGuid>{90549657-7e0e-48e4-bf28-e5b93374cd7c}</ProjectGuid>
+    <RootNamespace>RaytracerMain</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -56,6 +56,7 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
+    <Import Project="..\Library.Shared\Library.Shared.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -150,19 +151,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Program.cpp" />
-    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="helper.h" />
-    <ClInclude Include="IRenderObject.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Ray.h" />
-    <ClInclude Include="Sphere.h" />
     <ClInclude Include="stb_image_write.h" />
-    <ClInclude Include="vec3.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vec3.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
