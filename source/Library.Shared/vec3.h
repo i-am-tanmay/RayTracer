@@ -88,6 +88,8 @@ namespace Library
 	vec3 unit_vector(const vec3& vec);
 
 	vec3 random_in_unit_sphere();
+	vec3 random_unit_vector();
+	vec3 random_in_unit_hemisphere(const vec3& normal);
 
 	// alias
 	using color = vec3;

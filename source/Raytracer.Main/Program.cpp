@@ -43,28 +43,84 @@ int main(int, char**)
 	// RENDER IMAGE
 	Camera camera{ 2.0, 1.0 };
 
-	for (std::size_t i = 0; i < img_height; ++i)
+	// cos3 distribution
 	{
-		std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
-		for (std::size_t ii = 0; ii < img_width; ++ii)
+		for (std::size_t i = 0; i < img_height; ++i)
 		{
-			color pixel_color{ 0,0,0 };
-
-			for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+			std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
+			for (std::size_t ii = 0; ii < img_width; ++ii)
 			{
-				precision u = (ii + get_random()) / (img_width - 1);
-				precision v = (i + get_random()) / (img_height - 1);
-				pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
-			}
+				color pixel_color{ 0,0,0 };
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+				{
+					precision u = (ii + get_random()) / (img_width - 1);
+					precision v = (i + get_random()) / (img_height - 1);
+					pixel_color += ray_color_cos3(camera.get_ray(u, v), world, bounce_limit);
+				}
+
+				write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+			}
 		}
+
+		std::cout << "\ntime to write to file xo\n";
+		stbi_flip_vertically_on_write(true);
+		if (stbi_write_png("../../outputimage_cos.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
+		else std::cout << "fin.\n";
 	}
 
-	std::cout << "\ntime to write to file xo\n";
-	stbi_flip_vertically_on_write(true);
-	if (stbi_write_png("../../outputimage.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout<< "couldn't write to PNG lolol";
-	else std::cout << "fin.\n";
+	// cos distribution
+	{
+		for (std::size_t i = 0; i < img_height; ++i)
+		{
+			std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
+			for (std::size_t ii = 0; ii < img_width; ++ii)
+			{
+				color pixel_color{ 0,0,0 };
+
+				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+				{
+					precision u = (ii + get_random()) / (img_width - 1);
+					precision v = (i + get_random()) / (img_height - 1);
+					pixel_color += ray_color_cos(camera.get_ray(u, v), world, bounce_limit);
+				}
+
+				write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+			}
+		}
+
+		std::cout << "\ntime to write to file xo\n";
+		stbi_flip_vertically_on_write(true);
+		if (stbi_write_png("../../outputimage_cos3.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
+		else std::cout << "fin.\n";
+	}
+
+	// hemisphere distribution
+	{
+		for (std::size_t i = 0; i < img_height; ++i)
+		{
+			std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
+			for (std::size_t ii = 0; ii < img_width; ++ii)
+			{
+				color pixel_color{ 0,0,0 };
+
+				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+				{
+					precision u = (ii + get_random()) / (img_width - 1);
+					precision v = (i + get_random()) / (img_height - 1);
+					pixel_color += ray_color_hemispherical(camera.get_ray(u, v), world, bounce_limit);
+				}
+
+				write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+			}
+		}
+
+		std::cout << "\ntime to write to file xo\n";
+		stbi_flip_vertically_on_write(true);
+		if (stbi_write_png("../../outputimage_hemi.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
+		else std::cout << "fin.\n";
+	}
+
 
 	// CLEANUP
 	delete[] img_rgb;
