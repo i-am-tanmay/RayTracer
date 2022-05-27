@@ -18,7 +18,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)common.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderObject.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)ray.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RenderObjectList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)vec3.h" />

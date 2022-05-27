@@ -4,6 +4,8 @@
 
 namespace Library
 {
+	class Material;
+
 	struct HitInfo
 	{
 		pos3 pos;
@@ -11,6 +13,8 @@ namespace Library
 
 		vec3 normal;
 		bool isFrontFace;
+
+		std::shared_ptr<Material> material;
 
 		inline void hit_updatenormal(const Ray& ray, const vec3& outward_normal)
 		{

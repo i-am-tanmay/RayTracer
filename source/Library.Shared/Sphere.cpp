@@ -35,6 +35,7 @@ namespace Library
         hitinfo.ray_t = root;
         hitinfo.pos = ray.at(hitinfo.ray_t);
         hitinfo.hit_updatenormal(ray, ((hitinfo.pos - _center) / _radius));
+        hitinfo.material = _material;
 
         return true;
     }
