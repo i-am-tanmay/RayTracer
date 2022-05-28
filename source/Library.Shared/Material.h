@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include <functional>
 
 namespace Library
 {
@@ -10,7 +11,7 @@ namespace Library
 	class Material
 	{
 	public:
-		virtual bool scatter(const Ray& ray, const HitInfo& hitinfo, vec3& attenuation, Ray& ray_scattered) const = 0;
+		virtual bool scatter(const Ray& ray, const HitInfo& hitinfo, vec3& attenuation, Ray& ray_scattered, vec3 random_diffuse, bool ishemisphere = false) const = 0;
 		virtual ~Material() = default;
 	};
 }

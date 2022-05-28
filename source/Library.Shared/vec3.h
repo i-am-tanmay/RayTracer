@@ -59,6 +59,8 @@ namespace Library
 		inline static vec3 random() { return vec3(get_random(), get_random(), get_random()); }
 		inline static vec3 random(precision min_included, precision max_excluded) { return vec3(get_random(min_included, max_excluded), get_random(min_included, max_excluded), get_random(min_included, max_excluded)); }
 
+		bool is_near_zero() const;
+
 		friend void write_color(std::uint8_t* out, const vec3& pixel_color, std::size_t samples);
 		friend vec3 operator+(const vec3& lhs, const vec3& rhs);
 		friend vec3 operator-(const vec3& lhs, const vec3& rhs);
@@ -86,10 +88,12 @@ namespace Library
 	vec3 cross(const vec3& lhs, const vec3& rhs);
 
 	vec3 unit_vector(const vec3& vec);
-
+	
 	vec3 random_in_unit_sphere();
 	vec3 random_unit_vector();
 	vec3 random_in_unit_hemisphere(const vec3& normal);
+
+	vec3 reflect(const vec3& v, const vec3& n);
 
 	// alias
 	using color = vec3;

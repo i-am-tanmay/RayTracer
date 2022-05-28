@@ -144,6 +144,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Material_Lambertian.cpp" />
+    <ClCompile Include="Material_Metal.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -153,6 +155,8 @@
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Material_Lambertian.h" />
+    <ClInclude Include="Material_Metal.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="stb_image_write.h" />
   </ItemGroup>

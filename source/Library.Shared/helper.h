@@ -4,8 +4,10 @@
 #include "vec3.h"
 #include "Ray.h"
 #include "Sphere.h"
+#include "Material.h"
 #include <iostream>
 #include <cmath>
+#include <functional>
 
 namespace Library
 {
@@ -26,8 +28,12 @@ namespace Library
 		HitInfo hitinfo;
 		if (world.hit(ray, 0.001, infinity, hitinfo))
 		{
-			pos3 target = hitinfo.pos + hitinfo.normal + random_in_unit_sphere();
-			return 0.5 * ray_color_cos3(Ray{ hitinfo.pos, target - hitinfo.pos }, world, bounce_limit - 1);
+			Ray ray_scattered;
+			color attenuation;
+			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, hitinfo.normal + random_in_unit_sphere()))
+				return attenuation * ray_color_cos3(ray_scattered, world, bounce_limit - 1);
+
+			return color(0, 0, 0);
 		}
 
 		// GRADIENT
@@ -43,8 +49,12 @@ namespace Library
 		HitInfo hitinfo;
 		if (world.hit(ray, 0.001, infinity, hitinfo))
 		{
-			pos3 target = hitinfo.pos + hitinfo.normal + random_unit_vector();
-			return 0.5 * ray_color_cos(Ray{ hitinfo.pos, target - hitinfo.pos }, world, bounce_limit - 1);
+			Ray ray_scattered;
+			color attenuation;
+			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, hitinfo.normal + random_unit_vector()))
+				return attenuation * ray_color_cos(ray_scattered, world, bounce_limit - 1);
+
+			return color(0, 0, 0);
 		}
 
 		// GRADIENT
@@ -55,13 +65,15 @@ namespace Library
 
 	color ray_color_hemispherical(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
 	{
-		if (bounce_limit == 0) return color{ 0,0,0 };
-
 		HitInfo hitinfo;
 		if (world.hit(ray, 0.001, infinity, hitinfo))
 		{
-			pos3 target = hitinfo.pos + random_in_unit_hemisphere(hitinfo.normal);
-			return 0.5 * ray_color_hemispherical(Ray{ hitinfo.pos, target - hitinfo.pos }, world, bounce_limit - 1);
+			Ray ray_scattered;
+			color attenuation;
+			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, random_in_unit_hemisphere(hitinfo.normal), true))
+				return attenuation * ray_color_cos(ray_scattered, world, bounce_limit - 1);
+
+			return color(0, 0, 0);
 		}
 
 		// GRADIENT

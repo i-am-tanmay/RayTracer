@@ -20,6 +20,9 @@
 #include "RenderObjectList.h"
 #include "Sphere.h"
 
+#include "Material_Lambertian.h"
+#include "Material_Metal.h"
+
 using namespace Library;
 
 int main(int, char**)
@@ -37,8 +40,16 @@ int main(int, char**)
 
 	// WORLD
 	RenderObjectList world;
-	world.add(std::make_shared<Sphere>(pos3(0, 0, -1), 0.5));
-	world.add(std::make_shared<Sphere>(pos3(0, -100.5, -1), 100));
+
+	std::shared_ptr<Material_Lambertian> material_ground = std::make_shared<Material_Lambertian>(color(0.8, 0.8, 0.0));
+	std::shared_ptr<Material_Lambertian> material_center = std::make_shared<Material_Lambertian>(color(0.7, 0.3, 0.3));
+	std::shared_ptr<Material_Metal> material_left = std::make_shared<Material_Metal>(color(0.8, 0.8, 0.8), 0.3);
+	std::shared_ptr<Material_Metal> material_right = std::make_shared<Material_Metal>(color(0.8, 0.6, 0.2));
+
+	world.add(std::make_shared<Sphere>(pos3(0.0, -100.5, -1.0), 100.0, material_ground));
+	world.add(std::make_shared<Sphere>(pos3(0.0, 0.0, -1.0), 0.5, material_center));
+	world.add(std::make_shared<Sphere>(pos3(-1.0, 0.0, -1.0), 0.5, material_left));
+	world.add(std::make_shared<Sphere>(pos3(1.0, 0.0, -1.0), 0.5, material_right));
 
 	// RENDER IMAGE
 	Camera camera{ 2.0, 1.0 };
@@ -65,7 +76,7 @@ int main(int, char**)
 
 		std::cout << "\ntime to write to file xo\n";
 		stbi_flip_vertically_on_write(true);
-		if (stbi_write_png("../../outputimage_cos.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
+		if (stbi_write_png("../../outputimage_cos3.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
 		else std::cout << "fin.\n";
 	}
 
@@ -91,7 +102,7 @@ int main(int, char**)
 
 		std::cout << "\ntime to write to file xo\n";
 		stbi_flip_vertically_on_write(true);
-		if (stbi_write_png("../../outputimage_cos3.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
+		if (stbi_write_png("../../outputimage_cos.png", img_width, img_height, 3, img_rgb, img_width * 3) == 0) std::cout << "couldn't write to PNG lolol";
 		else std::cout << "fin.\n";
 	}
 
