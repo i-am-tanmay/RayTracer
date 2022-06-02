@@ -4,7 +4,7 @@
 
 using namespace Library;
 
-class Material_Metal : public Material
+class Material_Metal final : public Material
 {
 public:
 	Material_Metal(color color_albedo = color{ 1,0,1 }, precision fuzziness = 1.0) :albedo{ color_albedo }, fuzz{ (fuzziness<1)?fuzziness:1 } {}

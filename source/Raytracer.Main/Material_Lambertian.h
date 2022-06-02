@@ -4,7 +4,7 @@
 
 using namespace Library;
 
-class Material_Lambertian : public Material
+class Material_Lambertian final : public Material
 {
 public:
 	Material_Lambertian(color color_albedo = color{ 1,0,1 }) :albedo{ color_albedo } {}

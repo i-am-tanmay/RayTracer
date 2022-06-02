@@ -22,7 +22,7 @@ namespace Library
 		return degrees * pi / 180.0;
 	}
 
-	inline precision get_random()
+	inline precision get_random01()
 	{
 		static std::uniform_real_distribution<precision> distribution(0.0, 1.0);
 		static std::minstd_rand generator;
@@ -31,7 +31,7 @@ namespace Library
 
 	inline precision get_random(precision min_included, precision max_excluded)
 	{
-		return ((max_excluded - min_included) * get_random()) + min_included;
+		return ((max_excluded - min_included) * get_random01()) + min_included;
 	}
 
 	inline precision clamp(precision val, precision min, precision max)

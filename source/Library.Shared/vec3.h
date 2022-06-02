@@ -56,7 +56,7 @@ namespace Library
 		inline precision length() const { return std::sqrt(_vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]); }
 		inline precision length_squared() const { return _vec[0] * _vec[0] + _vec[1] * _vec[1] + _vec[2] * _vec[2]; }
 
-		inline static vec3 random() { return vec3(get_random(), get_random(), get_random()); }
+		inline static vec3 random() { return vec3(get_random01(), get_random01(), get_random01()); }
 		inline static vec3 random(precision min_included, precision max_excluded) { return vec3(get_random(min_included, max_excluded), get_random(min_included, max_excluded), get_random(min_included, max_excluded)); }
 
 		bool is_near_zero() const;
@@ -92,8 +92,10 @@ namespace Library
 	vec3 random_in_unit_sphere();
 	vec3 random_unit_vector();
 	vec3 random_in_unit_hemisphere(const vec3& normal);
+	vec3 random_in_unit_circle();
 
 	vec3 reflect(const vec3& v, const vec3& n);
+	vec3 refract(const vec3& v, const vec3& n, precision index_of_refraction);
 
 	// alias
 	using color = vec3;

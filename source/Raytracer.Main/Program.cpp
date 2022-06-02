@@ -22,6 +22,7 @@
 
 #include "Material_Lambertian.h"
 #include "Material_Metal.h"
+#include "Material_Dielectric.h"
 
 using namespace Library;
 
@@ -35,24 +36,60 @@ int main(int, char**)
 	assert(img_rgb != nullptr);
 
 	// PROPERTIES
-	const std::size_t samples_per_pixel = 100;
+	const std::size_t samples_per_pixel = 500;
 	const std::size_t bounce_limit = 50;
 
 	// WORLD
 	RenderObjectList world;
 
-	std::shared_ptr<Material_Lambertian> material_ground = std::make_shared<Material_Lambertian>(color(0.8, 0.8, 0.0));
-	std::shared_ptr<Material_Lambertian> material_center = std::make_shared<Material_Lambertian>(color(0.7, 0.3, 0.3));
-	std::shared_ptr<Material_Metal> material_left = std::make_shared<Material_Metal>(color(0.8, 0.8, 0.8), 0.3);
-	std::shared_ptr<Material_Metal> material_right = std::make_shared<Material_Metal>(color(0.8, 0.6, 0.2));
+	// ------------------------------------------------------------ generate random world ------------------------------------------------------
+	std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+	world.add(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
 
-	world.add(std::make_shared<Sphere>(pos3(0.0, -100.5, -1.0), 100.0, material_ground));
-	world.add(std::make_shared<Sphere>(pos3(0.0, 0.0, -1.0), 0.5, material_center));
-	world.add(std::make_shared<Sphere>(pos3(-1.0, 0.0, -1.0), 0.5, material_left));
-	world.add(std::make_shared<Sphere>(pos3(1.0, 0.0, -1.0), 0.5, material_right));
+	for (std::int32_t i = -11; i < 11; ++i)
+	{
+		for (std::int32_t ii = -11; ii < 11; ++ii)
+		{
+			precision choose_mat = get_random01();
+			pos3 center(i + 0.9 * get_random01(), 0.2, ii + 0.9 * get_random01());
+
+			if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
+				std::shared_ptr<Material> sphere_material;
+
+				if (choose_mat < 0.8) {
+					// diffuse
+					auto albedo = color::random() * color::random();
+					sphere_material = std::make_shared<Material_Lambertian>(albedo);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else if (choose_mat < 0.95) {
+					// metal
+					auto albedo = color::random(0.5, 1);
+					auto fuzz = get_random(0, 0.5);
+					sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else {
+					// glass
+					sphere_material = std::make_shared<Material_Dielectric>(1.5);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+			}
+		}
+	}
+
+	std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
+	world.add(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material1));
+
+	std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
+	world.add(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material2));
+
+	std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
+	world.add(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+	// // --------------------------------------------------------------------------------------------------------------------------------------
 
 	// RENDER IMAGE
-	Camera camera{ 2.0, 1.0 };
+	Camera camera{ pos3 {13,2,3}, pos3{0,0,0}, 20.0, vec3{0,1,0}, 0.1, 10.0 };
 
 	// cos3 distribution
 	{
@@ -65,8 +102,8 @@ int main(int, char**)
 
 				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
 				{
-					precision u = (ii + get_random()) / (img_width - 1);
-					precision v = (i + get_random()) / (img_height - 1);
+					precision u = (ii + get_random01()) / (img_width - 1);
+					precision v = (i + get_random01()) / (img_height - 1);
 					pixel_color += ray_color_cos3(camera.get_ray(u, v), world, bounce_limit);
 				}
 
@@ -91,8 +128,8 @@ int main(int, char**)
 
 				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
 				{
-					precision u = (ii + get_random()) / (img_width - 1);
-					precision v = (i + get_random()) / (img_height - 1);
+					precision u = (ii + get_random01()) / (img_width - 1);
+					precision v = (i + get_random01()) / (img_height - 1);
 					pixel_color += ray_color_cos(camera.get_ray(u, v), world, bounce_limit);
 				}
 
@@ -117,8 +154,8 @@ int main(int, char**)
 
 				for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
 				{
-					precision u = (ii + get_random()) / (img_width - 1);
-					precision v = (i + get_random()) / (img_height - 1);
+					precision u = (ii + get_random01()) / (img_width - 1);
+					precision v = (i + get_random01()) / (img_height - 1);
 					pixel_color += ray_color_hemispherical(camera.get_ray(u, v), world, bounce_limit);
 				}
 

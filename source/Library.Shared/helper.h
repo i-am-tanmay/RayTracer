@@ -65,13 +65,15 @@ namespace Library
 
 	color ray_color_hemispherical(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
 	{
+		if (bounce_limit == 0) return color{ 0,0,0 };
+
 		HitInfo hitinfo;
 		if (world.hit(ray, 0.001, infinity, hitinfo))
 		{
 			Ray ray_scattered;
 			color attenuation;
 			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, random_in_unit_hemisphere(hitinfo.normal), true))
-				return attenuation * ray_color_cos(ray_scattered, world, bounce_limit - 1);
+				return attenuation * ray_color_hemispherical(ray_scattered, world, bounce_limit - 1);
 
 			return color(0, 0, 0);
 		}
