@@ -5,7 +5,8 @@
 
 namespace Library
 {
-    class Sphere : public IRenderObject {
+    class Sphere final : public IRenderObject
+    {
     public:
         Sphere(pos3 center, precision radius, std::shared_ptr<Material> material) : _center{ center }, _radius{ radius }, _material{ material } {}
 
