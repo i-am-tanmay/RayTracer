@@ -21,7 +21,7 @@ namespace Library
 		out[2] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[2] * scale), 0, 0.999));
 	}
 
-	color ray_color_cos3(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
+	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
 	{
 		if (bounce_limit == 0) return color{ 0,0,0 };
 
@@ -30,50 +30,8 @@ namespace Library
 		{
 			Ray ray_scattered;
 			color attenuation;
-			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, hitinfo.normal + random_in_unit_sphere()))
-				return attenuation * ray_color_cos3(ray_scattered, world, bounce_limit - 1);
-
-			return color(0, 0, 0);
-		}
-
-		// GRADIENT
-		vec3 direction = unit_vector(ray.direction());
-		precision t = 0.5 * (direction.y() + 1);
-		return (1 - t) * color { 1, 1, 1 } + t * color{ 0.5, 0.7, 1.0 };	// lerp white to blue
-	}
-
-	color ray_color_cos(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
-	{
-		if (bounce_limit == 0) return color{ 0,0,0 };
-
-		HitInfo hitinfo;
-		if (world.hit(ray, 0.001, infinity, hitinfo))
-		{
-			Ray ray_scattered;
-			color attenuation;
-			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, hitinfo.normal + random_unit_vector()))
-				return attenuation * ray_color_cos(ray_scattered, world, bounce_limit - 1);
-
-			return color(0, 0, 0);
-		}
-
-		// GRADIENT
-		vec3 direction = unit_vector(ray.direction());
-		precision t = 0.5 * (direction.y() + 1);
-		return (1 - t) * color { 1, 1, 1 } + t * color{ 0.5, 0.7, 1.0 };	// lerp white to blue
-	}
-
-	color ray_color_hemispherical(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
-	{
-		if (bounce_limit == 0) return color{ 0,0,0 };
-
-		HitInfo hitinfo;
-		if (world.hit(ray, 0.001, infinity, hitinfo))
-		{
-			Ray ray_scattered;
-			color attenuation;
-			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered, random_in_unit_hemisphere(hitinfo.normal), true))
-				return attenuation * ray_color_hemispherical(ray_scattered, world, bounce_limit - 1);
+			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered))
+				return attenuation * ray_color(ray_scattered, world, bounce_limit - 1);
 
 			return color(0, 0, 0);
 		}

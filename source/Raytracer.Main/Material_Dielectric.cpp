@@ -2,7 +2,7 @@
 #include "Material_Dielectric.h"
 #include "IRenderObject.h"
 
-bool Material_Dielectric::scatter(const Ray& ray, const HitInfo& hitinfo, vec3& attenuation, Ray& ray_scattered, vec3 random_diffuse, bool ishemisphere) const
+bool Material_Dielectric::scatter(const Ray& ray, const HitInfo& hitinfo, vec3& attenuation, Ray& ray_scattered) const
 {
 	attenuation = color(1.0, 1.0, 1.0);
 	double refraction_ratio = hitinfo.isFrontFace ? (1.0 / _indexofrefraction) : _indexofrefraction;
