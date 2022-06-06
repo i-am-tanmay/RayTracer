@@ -35,8 +35,8 @@ int main(int, char**)
 	std::uint8_t* img_rgb = new std::uint8_t[img_width * img_height * 3];
 
 	// PROPERTIES
-	const std::size_t samples_per_pixel = 32;
-	const std::size_t bounce_limit = 8;
+	const std::size_t samples_per_pixel = 500;
+	const std::size_t bounce_limit = 50;
 
 	// WORLD
 	RenderObjectList world;
@@ -98,7 +98,7 @@ int main(int, char**)
 			//std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
 			for (std::size_t ii = 0; ii < img_width; ++ii)
 			{
-				threadpool.EnqueueTask([&]
+				threadpool.EnqueueTask([&, i, ii]
 					{
 						color pixel_color{ 0,0,0 };
 
