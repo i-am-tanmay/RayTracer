@@ -24,9 +24,9 @@ namespace Library
 		HitInfo __hitinfo;
 		precision mindist{ t_max };
 
-		for (std::shared_ptr<IRenderObject> object : _renderobjects)
+		for (std::size_t i = 0; i < _renderobjects.size(); ++i)
 		{
-			if (object->hit(ray, t_min, mindist, __hitinfo))
+			if (_renderobjects[i]->hit(ray, t_min, mindist, __hitinfo))
 			{
 				__hit = true;
 				mindist = __hitinfo.ray_t;

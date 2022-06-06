@@ -11,6 +11,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)vec3.cpp">
       <Filter>Containers</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h">
       <Filter>Containers</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include <iostream>
 #include <fstream>
-#include <assert.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4996 26819 6385 6386 26451)
@@ -10,6 +9,7 @@
 #pragma warning(pop)
 
 #include "common.h"
+#include "ThreadPool.h"
 
 #include "vec3.h"
 #include "helper.h"
@@ -33,7 +33,6 @@ int main(int, char**)
 	const std::size_t img_height = static_cast<int>(img_width / aspect_ratio);
 
 	std::uint8_t* img_rgb = new std::uint8_t[img_width * img_height * 3];
-	assert(img_rgb != nullptr);
 
 	// PROPERTIES
 	const std::size_t samples_per_pixel = 32;
@@ -90,23 +89,32 @@ int main(int, char**)
 
 	// RENDER IMAGE
 	Camera camera{ pos3 {13,2,3}, pos3{0,0,0}, 20.0, vec3{0,1,0}, 0.1, 10.0 };
-
-	for (std::size_t i = 0; i < img_height; ++i)
+	
 	{
-		std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
-		for (std::size_t ii = 0; ii < img_width; ++ii)
+		ThreadPool threadpool;
+
+		for (std::size_t i = 0; i < img_height; ++i)
 		{
-			color pixel_color{ 0,0,0 };
-
-			for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+			//std::cout << "\rScanlines remaining: " << img_height - i - 1 << ' ' << std::flush;
+			for (std::size_t ii = 0; ii < img_width; ++ii)
 			{
-				precision u = (ii + get_random01()) / (img_width - 1);
-				precision v = (i + get_random01()) / (img_height - 1);
-				pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
-			}
+				threadpool.EnqueueTask([&]
+					{
+						color pixel_color{ 0,0,0 };
 
-			write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+						for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+						{
+							precision u = (ii + get_random01()) / (img_width - 1);
+							precision v = (i + get_random01()) / (img_height - 1);
+							pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
+						}
+
+						write_color(&img_rgb[(i * img_width + ii) * 3], pixel_color, samples_per_pixel);
+					});
+			}
 		}
+
+		threadpool.Stop();
 	}
 
 	std::cout << "\ntime to write to file xo\n";
