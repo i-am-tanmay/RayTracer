@@ -21,6 +21,8 @@ namespace Library
 
 		void EnqueueTask(std::function<void()>&& function);
 
+		void JoinAllTasks();
+
 		std::size_t Thread_Count() const { return _threads.size(); }
 		void Resume();
 		void Pause();
@@ -32,7 +34,8 @@ namespace Library
 	private:
 		std::vector<std::thread> _threads;
 		std::mutex _taskqueue_mutex;
-		std::queue<std::function<void()>> _taskqueue;
+		std::queue<std::shared_ptr<std::packaged_task<void()>>> _taskqueue;
+		std::vector<std::future<void>> _futures;
 		std::condition_variable _threadpool_notifier;
 
 		bool _is_paused{ false };

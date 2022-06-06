@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ThreadPool.h"
+#include <memory>
 
 namespace Library
 {
@@ -17,12 +18,7 @@ namespace Library
 
 	ThreadPool::~ThreadPool()
 	{
-		{
-			std::lock_guard<std::mutex> taskqueue_lock{ _taskqueue_mutex };
-			_is_stopped = true;
-		}
-
-		_threadpool_notifier.notify_all();
+		Stop();
 
 		for (auto& task_thread : _threads)
 			if (task_thread.joinable()) task_thread.join();
@@ -34,18 +30,30 @@ namespace Library
 			std::lock_guard<std::mutex> taskqueue_lock{ _taskqueue_mutex };
 
 			if (_is_stopped) throw std::runtime_error("ThreadPool had been stopped");
-
-			_taskqueue.emplace(std::forward<std::function<void()>>(function));
+			
+			std::shared_ptr<std::packaged_task<void()>> task = std::make_shared<std::packaged_task<void()>>(std::forward<std::function<void()>>(function));
+			_futures.push_back(task->get_future());
+			_taskqueue.push(task);
 		}
 
 		// Wait till a thread becomes available to work
 		_threadpool_notifier.notify_one();
 	}
 
+	void ThreadPool::JoinAllTasks()
+	{
+		/*std::unique_lock<std::mutex> taskqueue_lock{ _taskqueue_mutex };
+
+		_threadpool_notifier.wait(taskqueue_lock,
+			[this]() { return _taskqueue.empty(); }
+		);*/
+
+		for (std::size_t i = 0; i < _futures.size(); ++i)
+			_futures[i].get();
+	}
+
 	void ThreadPool::Stop()
 	{
-		while (!_taskqueue.empty());
-
 		{
 			std::lock_guard<std::mutex> taskqueue_lock{ _taskqueue_mutex };
 			_is_stopped = true;
@@ -78,7 +86,7 @@ namespace Library
 	{
 		while (true)
 		{
-			std::function<void()> task;
+			std::shared_ptr<std::packaged_task<void()>> task;
 
 			{
 				std::unique_lock<std::mutex> taskqueue_lock{ _taskqueue_mutex };
@@ -96,9 +104,11 @@ namespace Library
 
 				task = std::move(_taskqueue.front());
 				_taskqueue.pop();
+
+				//_threadpool_notifier.notify_all();
 			}
 
-			task();	// Do the Task
+			(*task)();	// Do the Task
 		}
 	}
 }

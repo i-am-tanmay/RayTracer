@@ -114,7 +114,7 @@ int main(int, char**)
 			}
 		}
 
-		threadpool.Stop();
+		threadpool.JoinAllTasks();
 	}
 
 	std::cout << "\ntime to write to file xo\n";

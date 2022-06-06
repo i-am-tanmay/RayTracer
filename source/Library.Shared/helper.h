@@ -11,7 +11,7 @@
 
 namespace Library
 {
-	void write_color(std::uint8_t* out, const vec3& pixel_color, std::size_t samples)
+	inline void write_color(std::uint8_t* out, const vec3& pixel_color, std::size_t samples)
 	{
 		const precision scale{ 1.0 / samples };
 
