@@ -12,6 +12,24 @@
     <ClCompile Include="Material_Dielectric.cpp">
       <Filter>Materials</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui_draw.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui_impl_dx11.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui_impl_win32.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui_tables.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\imgui\imgui_widgets.cpp">
+      <Filter>External Libraries\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -25,10 +43,40 @@
     <ClInclude Include="Material_Dielectric.h">
       <Filter>Materials</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imconfig.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imgui.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imgui_impl_dx11.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imgui_impl_win32.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imgui_internal.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imstb_rectpack.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imstb_textedit.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\imgui\imstb_truetype.h">
+      <Filter>External Libraries\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Materials">
       <UniqueIdentifier>{0a593df1-af34-4da1-a683-a5a8db4064ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External Libraries">
+      <UniqueIdentifier>{a70ad99c-574b-48e5-88dc-e27b006ec659}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External Libraries\imgui">
+      <UniqueIdentifier>{c7a8057e-8519-40ed-8b0d-4f513fa7d93a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -4,10 +4,6 @@
 
 namespace Library
 {
-	ThreadPool::ThreadPool() : ThreadPool(std::thread::hardware_concurrency())
-	{
-	}
-
 	ThreadPool::ThreadPool(const std::size_t thread_count)
 	{
 		if (thread_count == 0) throw std::runtime_error("ThreadPool cannot be of size 0");
@@ -26,13 +22,13 @@ namespace Library
 
 	void ThreadPool::EnqueueTask(std::function<void()>&& function)
 	{
+		if (_is_stopped) throw std::runtime_error("ThreadPool had been stopped");
+
 		{
 			std::lock_guard<std::mutex> taskqueue_lock{ _taskqueue_mutex };
 
-			if (_is_stopped) throw std::runtime_error("ThreadPool had been stopped");
-			
 			std::shared_ptr<std::packaged_task<void()>> task = std::make_shared<std::packaged_task<void()>>(std::forward<std::function<void()>>(function));
-			_futures.push_back(task->get_future());
+			_futures.push(task->get_future());
 			_taskqueue.push(task);
 		}
 
@@ -42,14 +38,12 @@ namespace Library
 
 	void ThreadPool::JoinAllTasks()
 	{
-		/*std::unique_lock<std::mutex> taskqueue_lock{ _taskqueue_mutex };
-
-		_threadpool_notifier.wait(taskqueue_lock,
-			[this]() { return _taskqueue.empty(); }
-		);*/
-
-		for (std::size_t i = 0; i < _futures.size(); ++i)
-			_futures[i].get();
+		std::size_t size = _futures.size();
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			_futures.front().get();
+			_futures.pop();
+		}
 	}
 
 	void ThreadPool::Stop()
@@ -60,6 +54,15 @@ namespace Library
 		}
 
 		_threadpool_notifier.notify_all();
+	}
+
+	void ThreadPool::ClearPending()
+	{
+		std::lock_guard<std::mutex> taskqueue_lock{ _taskqueue_mutex };
+
+		std::size_t size = _taskqueue.size();
+		for (std::size_t i = 0; i < size; ++i)
+			_taskqueue.pop();
 	}
 
 	void ThreadPool::Resume()
@@ -91,7 +94,7 @@ namespace Library
 			{
 				std::unique_lock<std::mutex> taskqueue_lock{ _taskqueue_mutex };
 
-				// Wait IF:
+				// Wait for new task, ie, Wait IF:
 				//	(1) No Tasks in Queue
 				//	(2) ThreadPool is Paused
 				//	(3) ThreadPool is Stopped
@@ -104,8 +107,6 @@ namespace Library
 
 				task = std::move(_taskqueue.front());
 				_taskqueue.pop();
-
-				//_threadpool_notifier.notify_all();
 			}
 
 			(*task)();	// Do the Task
