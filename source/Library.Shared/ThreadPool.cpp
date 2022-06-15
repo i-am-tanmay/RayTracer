@@ -15,9 +15,6 @@ namespace Library
 	ThreadPool::~ThreadPool()
 	{
 		Stop();
-
-		for (auto& task_thread : _threads)
-			if (task_thread.joinable()) task_thread.join();
 	}
 
 	void ThreadPool::EnqueueTask(std::function<void()>&& function)
@@ -54,6 +51,9 @@ namespace Library
 		}
 
 		_threadpool_notifier.notify_all();
+
+		for (auto& task_thread : _threads)
+			if (task_thread.joinable()) task_thread.join();
 	}
 
 	void ThreadPool::ClearPending()
