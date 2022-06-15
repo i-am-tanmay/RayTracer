@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 
 #define NOMINMAX
@@ -8,6 +9,7 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx11.h"
 #include <d3d11.h>
+#include <directxmath.h>
 #include <tchar.h>
 
 #include "common.h"
@@ -32,12 +34,20 @@ static ID3D11Device* g_pd3dDevice{ nullptr };
 static ID3D11DeviceContext* g_pd3dDeviceContext{ nullptr };
 static IDXGISwapChain* g_pSwapChain{ nullptr };
 static ID3D11RenderTargetView* g_mainRenderTargetView{ nullptr };
+
+static ID3D11VertexShader* simplequad_vs{ nullptr };
+static ID3D11PixelShader* simplequad_ps{ nullptr };
+static ID3D11InputLayout* simplequad_inputlayout{ nullptr };
+static ID3D11Buffer* simplequad_vertexbuffer{ nullptr };
+static ID3D11ShaderResourceView* img_buffer_srv{ nullptr };
+
 // dx helper functions
-bool CreateDeviceD3D(HWND hWnd, void* img_buffer, ID3D11ShaderResourceView*& img_buffer_srv);
-void CleanupDeviceD3D(ID3D11ShaderResourceView*& img_buffer_srv);
+bool CreateDeviceD3D(HWND hWnd, void* img_buffer);
+void CleanupDeviceD3D();
 bool CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void ThrowIfFailed(HRESULT hr, const char* const message = "");
 
 
 int main(int, char**)
@@ -57,13 +67,11 @@ int main(int, char**)
 	::RegisterClassEx(&wc);
 	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("RayTracer"), WS_OVERLAPPEDWINDOW, 100, 100, img_width, img_height, nullptr, nullptr, wc.hInstance, nullptr);
 
-	ID3D11ShaderResourceView* img_buffer_srv{ nullptr };
-
 	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd, img_buffer, img_buffer_srv))
+	if (!CreateDeviceD3D(hwnd, img_buffer))
 	{
 		delete[] img_buffer;
-		CleanupDeviceD3D(img_buffer_srv);
+		CleanupDeviceD3D();
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return 1;
 	}
@@ -73,18 +81,17 @@ int main(int, char**)
 	::UpdateWindow(hwnd);
 
 	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	//IMGUI_CHECKVERSION();
+	//ImGui::CreateContext();
+	//ImGuiIO& io = ImGui::GetIO(); (void)io;
+	////io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	////io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImVec4 clear_color = ImVec4(0, 0, 0, 1);
-	// Setup Platform/Renderer backends
-	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
+	//// Setup Dear ImGui style
+	//ImGui::StyleColorsDark();
+	//// Setup Platform/Renderer backends
+	//ImGui_ImplWin32_Init(hwnd);
+	//ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 #pragma endregion
 
@@ -145,7 +152,6 @@ int main(int, char**)
 	ThreadPool threadpool{ std::max(std::thread::hardware_concurrency(),2u) - 1u };
 
 	bool renderstarted = false;
-	g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
 
 #pragma endregion
 
@@ -168,75 +174,88 @@ int main(int, char**)
 #pragma endregion
 
 #pragma region imgui UI init
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+		//ImGui_ImplDX11_NewFrame();
+		//ImGui_ImplWin32_NewFrame();
+		//ImGui::NewFrame();
 #pragma endregion
-
+		//ImVec4 clear_color = ImVec4(0, 0, 0, 1);
+		//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+		//  g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
 		// render stuff START
 
-		{
-			ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-			ImGui::SetNextWindowSize(windowsize, ImGuiCond_Always);
-			ImGui::Begin("output image", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		//{
+		//	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		//	ImGui::SetNextWindowSize(windowsize, ImGuiCond_Always);
+		//	ImGui::Begin("output image", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-			ID3D11Resource* img_buffer_resource;
-			img_buffer_srv->GetResource(&img_buffer_resource);
+		//	ID3D11Resource* img_buffer_resource;
+		//	img_buffer_srv->GetResource(&img_buffer_resource);
 
-			D3D11_MAPPED_SUBRESOURCE mapped_resource;
-			g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
-			memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(uint8_t));
-			g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
+		//	D3D11_MAPPED_SUBRESOURCE mapped_resource;
+		//	g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+		//	memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(uint8_t));
+		//	g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
 
-			ImGui::Image(img_buffer_srv, windowsize);
+		//	ImGui::Image(img_buffer_srv, windowsize);
 
-			ImGui::End();
-		}
+		//	ImGui::End();
+		//}
 
 		// render stuff END
 
+		g_pd3dDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		g_pd3dDeviceContext->IASetInputLayout(simplequad_inputlayout);
+
+		const uint32_t stride = sizeof(DirectX::XMFLOAT4) * 2;
+		const uint32_t offset = 0;
+		g_pd3dDeviceContext->IASetVertexBuffers(0, 1, &simplequad_vertexbuffer, &stride, &offset);
+
+		g_pd3dDeviceContext->VSSetShader(simplequad_vs, nullptr, 0);
+		g_pd3dDeviceContext->PSSetShader(simplequad_ps, nullptr, 0);
+
+		g_pd3dDeviceContext->Draw(3, 0);
+
 #pragma region imgui UIs
 
-		{
-			ImGui::Begin("thou scene.");
+		//{
+		//	ImGui::Begin("thou scene.");
 
-			if (ImGui::Button("let us begin.") && !renderstarted)
-			{
-				renderstarted = true;
+		//	if (ImGui::Button("let us begin.") && !renderstarted)
+		//	{
+		//		renderstarted = true;
 
-				for (std::size_t i = 0; i < img_height; ++i)
-				{
-					for (std::size_t ii = 0; ii < img_width; ++ii)
-					{
-						threadpool.EnqueueTask([&, i, ii]
-							{
-								color pixel_color{ 0,0,0 };
+		//		for (std::size_t i = 0; i < img_height; ++i)
+		//		{
+		//			for (std::size_t ii = 0; ii < img_width; ++ii)
+		//			{
+		//				threadpool.EnqueueTask([&, i, ii]
+		//					{
+		//						color pixel_color{ 0,0,0 };
 
-								for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
-								{
-									precision u = (ii + get_random01()) / (img_width - 1);
-									precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-									pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
-								}
+		//						for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
+		//						{
+		//							precision u = (ii + get_random01()) / (img_width - 1);
+		//							precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
+		//							pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
+		//						}
 
-								write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_per_pixel);
-							});
-					}
-				}
-			}
+		//						write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_per_pixel);
+		//					});
+		//			}
+		//		}
+		//	}
 
-			ImGui::Text("%.3f ms / %.1f FPS", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		//	ImGui::Text("%.3f ms / %.1f FPS", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-			ImGui::End();
-		}
+		//	ImGui::End();
+		//}
 
 #pragma endregion
 
 		// render imgui
-		ImGui::Render();
-		//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-		//g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		//ImGui::Render();
+		
+		//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		g_pSwapChain->Present(1, 0); // Present with vsync
 		//g_pSwapChain->Present(0, 0); // Present without vsync
@@ -245,11 +264,11 @@ int main(int, char**)
 	// Cleanup
 	threadpool.Stop();
 	delete[] img_buffer;
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	//ImGui_ImplDX11_Shutdown();
+	//ImGui_ImplWin32_Shutdown();
+	//ImGui::DestroyContext();
 
-	CleanupDeviceD3D(img_buffer_srv);
+	CleanupDeviceD3D();
 	::DestroyWindow(hwnd);
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
@@ -258,9 +277,9 @@ int main(int, char**)
 
 // Helper functions
 
-bool CreateDeviceD3D(HWND hWnd, void* img_buffer, ID3D11ShaderResourceView*& img_buffer_srv)
+bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
 {
-	// Setup swap chain
+#pragma region Swap Chain
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
 
@@ -288,9 +307,81 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer, ID3D11ShaderResourceView*& img
 	const D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 	if (D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevel, 1, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, nullptr, &g_pd3dDeviceContext) != S_OK)
 		return false;
+#pragma endregion
 
 	// create render target
 	if (!(CreateRenderTarget())) return false;
+
+#pragma region VertexShader
+	std::vector<char> compiledVertexShader;
+	std::ifstream vsfile("simplequad_vs.cso", std::ios::binary);
+	if (!vsfile.good()) throw std::runtime_error("Could not open vertex shader");
+
+	vsfile.seekg(0, std::ios::end);
+	std::uint32_t size = (std::uint32_t)vsfile.tellg();
+
+	if (size > 0)
+	{
+		compiledVertexShader.resize(size);
+		vsfile.seekg(0, std::ios::beg);
+		vsfile.read(&compiledVertexShader.front(), size);
+	}
+
+	vsfile.close();
+	ThrowIfFailed(g_pd3dDevice->CreateVertexShader(&compiledVertexShader[0], compiledVertexShader.size(), nullptr, &simplequad_vs), "CreateVertexShader Failed");
+#pragma endregion
+
+#pragma region PixelShader
+	std::vector<char> compiledPixelShader;
+	std::ifstream psfile("simplequad_ps.cso", std::ios::binary);
+	if (!psfile.good()) throw std::runtime_error("Could not open pixel shader");
+
+	psfile.seekg(0, std::ios::end);
+	size = (std::uint32_t)psfile.tellg();
+
+	if (size > 0)
+	{
+		compiledPixelShader.resize(size);
+		psfile.seekg(0, std::ios::beg);
+		psfile.read(&compiledPixelShader.front(), size);
+	}
+
+	psfile.close();
+	ThrowIfFailed(g_pd3dDevice->CreatePixelShader(&compiledPixelShader[0], compiledPixelShader.size(), nullptr, &simplequad_ps), "CreatePixelShader Failed");
+#pragma endregion
+
+#pragma region Input Layout
+	const D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	ThrowIfFailed(g_pd3dDevice->CreateInputLayout(inputElementDescriptions, sizeof(inputElementDescriptions) / sizeof(inputElementDescriptions[0]), compiledVertexShader.data(), compiledVertexShader.size(), &simplequad_inputlayout), "CreateInputLayout Failed");
+#pragma endregion
+
+#pragma region Vertex Buffer
+	const DirectX::XMFLOAT4 vertex_positioncolor[] =
+	{
+		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+
+		DirectX::XMFLOAT4(0.0f, 0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+
+		DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)
+	};
+
+	D3D11_BUFFER_DESC vertexbuffer_desc{ 0 };
+	vertexbuffer_desc.ByteWidth = sizeof(DirectX::XMFLOAT4) * 6;
+	vertexbuffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
+	vertexbuffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA vertex_subresource{ 0 };
+	vertex_subresource.pSysMem = vertex_positioncolor;
+	ThrowIfFailed(g_pd3dDevice->CreateBuffer(&vertexbuffer_desc, &vertex_subresource, &simplequad_vertexbuffer), "CreateVertexBuffer Failed");
+#pragma endregion
 
 	// texture description
 	D3D11_TEXTURE2D_DESC tex_description;
@@ -326,6 +417,8 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer, ID3D11ShaderResourceView*& img
 	g_pd3dDevice->CreateShaderResourceView(texture, &srv_desc, &img_buffer_srv);
 	texture->Release();
 
+	g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
+
 	return true;
 }
 
@@ -346,7 +439,7 @@ void CleanupRenderTarget()
 }
 
 
-void CleanupDeviceD3D(ID3D11ShaderResourceView*& img_buffer_srv)
+void CleanupDeviceD3D()
 {
 	if (img_buffer_srv != nullptr) { img_buffer_srv->Release(); img_buffer_srv = nullptr; }
 	CleanupRenderTarget();
@@ -373,9 +466,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 		{
-			CleanupRenderTarget();
-			g_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-			CreateRenderTarget();
+			//CleanupRenderTarget();
+			//g_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
+			//CreateRenderTarget();
 		}
 		return 0;
 	case WM_SYSCOMMAND:
@@ -387,4 +480,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+inline void ThrowIfFailed(HRESULT hr, const char* const message)
+{
+	if (FAILED(hr))
+	{
+		throw std::runtime_error(message);
+	}
 }

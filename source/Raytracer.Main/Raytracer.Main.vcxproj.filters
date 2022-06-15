@@ -78,5 +78,16 @@
     <Filter Include="External Libraries\imgui">
       <UniqueIdentifier>{c7a8057e-8519-40ed-8b0d-4f513fa7d93a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{4dc2a9c5-bcda-4b8c-b0c1-cfb6d23276f1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="simplequad_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="simplequad_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
