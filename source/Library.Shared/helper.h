@@ -19,7 +19,7 @@ namespace Library
 		out[0] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[0] * scale), 0, 0.999));
 		out[1] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[1] * scale), 0, 0.999));
 		out[2] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[2] * scale), 0, 0.999));
-		out[3] = static_cast<std::uint8_t>(255);
+		//out[3] = static_cast<std::uint8_t>(255);
 	}
 
 	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
