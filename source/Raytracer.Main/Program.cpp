@@ -5,9 +5,9 @@
 
 #define NOMINMAX
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_win32.h"
-#include "imgui/imgui_impl_dx11.h"
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_win32.h"
+//#include "imgui/imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <directxmath.h>
 #include <tchar.h>
@@ -39,6 +39,7 @@ static ID3D11VertexShader* simplequad_vs{ nullptr };
 static ID3D11PixelShader* simplequad_ps{ nullptr };
 static ID3D11InputLayout* simplequad_inputlayout{ nullptr };
 static ID3D11Buffer* simplequad_vertexbuffer{ nullptr };
+static ID3D11Buffer* simplequad_indexbuffer{ nullptr };
 static ID3D11ShaderResourceView* img_buffer_srv{ nullptr };
 
 // dx helper functions
@@ -53,7 +54,7 @@ void ThrowIfFailed(HRESULT hr, const char* const message = "");
 int main(int, char**)
 {
 	std::uint8_t* img_buffer = new std::uint8_t[img_width * img_height * 4];
-	ImVec2 windowsize{ img_width, img_height };
+	//ImVec2 windowsize{ img_width, img_height };
 
 	// RAYTRACING PROPERTIES
 	const std::size_t samples_per_pixel = 32;
@@ -179,8 +180,8 @@ int main(int, char**)
 		//ImGui::NewFrame();
 #pragma endregion
 		//ImVec4 clear_color = ImVec4(0, 0, 0, 1);
-		//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-		//  g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
+		const float clear_color_with_alpha[4] = { 0, 0, 0, 1 };
+		g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
 		// render stuff START
 
 		//{
@@ -209,11 +210,12 @@ int main(int, char**)
 		const uint32_t stride = sizeof(DirectX::XMFLOAT4) * 2;
 		const uint32_t offset = 0;
 		g_pd3dDeviceContext->IASetVertexBuffers(0, 1, &simplequad_vertexbuffer, &stride, &offset);
+		g_pd3dDeviceContext->IASetIndexBuffer(simplequad_indexbuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		g_pd3dDeviceContext->VSSetShader(simplequad_vs, nullptr, 0);
 		g_pd3dDeviceContext->PSSetShader(simplequad_ps, nullptr, 0);
 
-		g_pd3dDeviceContext->Draw(3, 0);
+		g_pd3dDeviceContext->DrawIndexed(3, 0, 0);
 
 #pragma region imgui UIs
 
@@ -363,13 +365,13 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
 #pragma region Vertex Buffer
 	const DirectX::XMFLOAT4 vertex_positioncolor[] =
 	{
-		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
 
-		DirectX::XMFLOAT4(0.0f, 0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
 
-		DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
+		DirectX::XMFLOAT4(0.5f, -0.5f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)
 	};
 
@@ -383,39 +385,52 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
 	ThrowIfFailed(g_pd3dDevice->CreateBuffer(&vertexbuffer_desc, &vertex_subresource, &simplequad_vertexbuffer), "CreateVertexBuffer Failed");
 #pragma endregion
 
-	// texture description
-	D3D11_TEXTURE2D_DESC tex_description;
-	ZeroMemory(&tex_description, sizeof(tex_description));
-	tex_description.Width = static_cast<UINT>(img_width);
-	tex_description.Height = static_cast<UINT>(img_height);
-	tex_description.MipLevels = 1;
-	tex_description.ArraySize = 1;
-	tex_description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	tex_description.SampleDesc.Count = 1;
-	tex_description.Usage = D3D11_USAGE_DYNAMIC;
-	tex_description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	tex_description.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+#pragma region Index Buffer
+	const unsigned long indices[] = { 0,1,2 };
 
-	// bind image buffer to texture sub-resource
-	D3D11_SUBRESOURCE_DATA tex_resource;
-	tex_resource.pSysMem = img_buffer;
-	tex_resource.SysMemPitch = tex_description.Width * 4;
-	tex_resource.SysMemSlicePitch = 0;
+	D3D11_BUFFER_DESC indexbuffer_desc{ 0 };
+	indexbuffer_desc.ByteWidth = sizeof(unsigned long) * 3;
+	indexbuffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
+	indexbuffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
-	// texture view description
-	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-	ZeroMemory(&srv_desc, sizeof(srv_desc));
-	srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srv_desc.Texture2D.MipLevels = 1;
-	srv_desc.Texture2D.MostDetailedMip = 0;
+	D3D11_SUBRESOURCE_DATA index_subresource{ 0 };
+	index_subresource.pSysMem = indices;
+	ThrowIfFailed(g_pd3dDevice->CreateBuffer(&indexbuffer_desc, &index_subresource, &simplequad_indexbuffer), "CreateIndexBuffer Failed");
+#pragma endregion
 
-	// create the texture view
-	ID3D11Texture2D* texture{ nullptr };
-	g_pd3dDevice->CreateTexture2D(&tex_description, &tex_resource, &texture);
-	if (texture == nullptr) return false;
-	g_pd3dDevice->CreateShaderResourceView(texture, &srv_desc, &img_buffer_srv);
-	texture->Release();
+	//// texture description
+	//D3D11_TEXTURE2D_DESC tex_description;
+	//ZeroMemory(&tex_description, sizeof(tex_description));
+	//tex_description.Width = static_cast<UINT>(img_width);
+	//tex_description.Height = static_cast<UINT>(img_height);
+	//tex_description.MipLevels = 1;
+	//tex_description.ArraySize = 1;
+	//tex_description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//tex_description.SampleDesc.Count = 1;
+	//tex_description.Usage = D3D11_USAGE_DYNAMIC;
+	//tex_description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	//tex_description.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	//// bind image buffer to texture sub-resource
+	//D3D11_SUBRESOURCE_DATA tex_resource;
+	//tex_resource.pSysMem = img_buffer;
+	//tex_resource.SysMemPitch = tex_description.Width * 4;
+	//tex_resource.SysMemSlicePitch = 0;
+
+	//// texture view description
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+	//ZeroMemory(&srv_desc, sizeof(srv_desc));
+	//srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srv_desc.Texture2D.MipLevels = 1;
+	//srv_desc.Texture2D.MostDetailedMip = 0;
+
+	//// create the texture view
+	//ID3D11Texture2D* texture{ nullptr };
+	//g_pd3dDevice->CreateTexture2D(&tex_description, &tex_resource, &texture);
+	//if (texture == nullptr) return false;
+	//g_pd3dDevice->CreateShaderResourceView(texture, &srv_desc, &img_buffer_srv);
+	//texture->Release();
 
 	g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
 
@@ -427,7 +442,7 @@ bool CreateRenderTarget()
 	ID3D11Texture2D* pBackBuffer{ nullptr };
 	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (pBackBuffer == nullptr) return false;
-	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_mainRenderTargetView);
+	ThrowIfFailed(g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_mainRenderTargetView), "CreateRenderTargetView Failed");
 	pBackBuffer->Release();
 
 	return true;
@@ -443,13 +458,18 @@ void CleanupDeviceD3D()
 {
 	if (img_buffer_srv != nullptr) { img_buffer_srv->Release(); img_buffer_srv = nullptr; }
 	CleanupRenderTarget();
+	if (simplequad_vs != nullptr) { simplequad_vs->Release(); simplequad_vs = nullptr; }
+	if (simplequad_ps != nullptr) { simplequad_ps->Release(); simplequad_ps = nullptr; }
+	if (simplequad_inputlayout != nullptr) { simplequad_inputlayout->Release(); simplequad_inputlayout = nullptr; }
+	if (simplequad_vertexbuffer != nullptr) { simplequad_vertexbuffer->Release(); simplequad_vertexbuffer = nullptr; }
+	if (simplequad_indexbuffer != nullptr) { simplequad_indexbuffer->Release(); simplequad_indexbuffer = nullptr; }
 	if (g_pSwapChain != nullptr) { g_pSwapChain->Release(); g_pSwapChain = nullptr; }
 	if (g_pd3dDeviceContext != nullptr) { g_pd3dDeviceContext->Release(); g_pd3dDeviceContext = nullptr; }
 	if (g_pd3dDevice != nullptr) { g_pd3dDevice->Release(); g_pd3dDevice = nullptr; }
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+//extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Win32 message handler
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -458,8 +478,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
+	//if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		//return true;
 
 	switch (msg)
 	{
