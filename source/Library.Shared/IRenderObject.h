@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ray.h"
+#include "AABB.h"
 
 namespace Library
 {
@@ -26,7 +27,10 @@ namespace Library
 	class IRenderObject
 	{
 	public:
-		virtual bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& rec) const = 0;
+		virtual bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& hitinfo) const = 0;
+		virtual bool aabb(AABB& out_box) const = 0;
+		virtual precision aabb_area() const = 0;
+
 		virtual ~IRenderObject() = default;
 	};
 }

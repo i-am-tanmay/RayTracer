@@ -7,11 +7,6 @@ namespace Library
 	{
 	}
 
-	void RenderObjectList::clear()
-	{
-		_renderobjects.clear();
-	}
-
 	void RenderObjectList::add(std::shared_ptr<IRenderObject> renderobject)
 	{
 		_renderobjects.push_back(renderobject);
@@ -35,5 +30,24 @@ namespace Library
 		}
 
 		return __hit;
+	}
+
+	bool RenderObjectList::aabb(AABB& out_box) const
+	{
+		if (_renderobjects.empty()) return false;
+
+		AABB temp_box;
+
+		// first box init
+		if (!_renderobjects[0]->aabb(temp_box)) return false;
+		out_box = temp_box;
+
+		for (std::size_t i = 1; i < _renderobjects.size(); ++i)
+		{
+			if (!_renderobjects[i]->aabb(temp_box)) return false;
+			out_box = surrounding_box(out_box, temp_box);
+		}
+
+		return true;
 	}
 }

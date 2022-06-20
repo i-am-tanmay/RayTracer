@@ -30,6 +30,8 @@ namespace Library
 
 		inline precision& operator[](int i) { return _vec[i]; }
 		inline const precision& operator[](int i) const { return _vec[i]; }
+		inline precision& operator[](std::size_t i) { return _vec[i]; }
+		inline const precision& operator[](std::size_t i) const { return _vec[i]; }
 
 		inline vec3& operator+=(const vec3& rhs)
 		{
@@ -82,7 +84,7 @@ namespace Library
 	vec3 operator*(const precision& val, const vec3& vec);
 	vec3 operator*(const vec3& vec, const precision& val);
 
-	vec3 operator/(vec3 vec, const precision& val);
+	vec3 operator/(const vec3& vec, const precision& val);
 
 	precision dot(const vec3& lhs, const vec3& rhs);
 	vec3 cross(const vec3& lhs, const vec3& rhs);

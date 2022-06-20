@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)RenderObjectList.cpp">
-      <Filter>RenderObjects</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp">
       <Filter>RenderObjects</Filter>
     </ClCompile>
@@ -12,6 +9,12 @@
       <Filter>Containers</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ThreadPool.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AABB.cpp">
+      <Filter>RenderObjects\BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)BVHNode.cpp">
+      <Filter>RenderObjects\BVH</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -19,9 +22,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderObject.h">
-      <Filter>RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RenderObjectList.h">
       <Filter>RenderObjects</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h">
@@ -34,6 +34,12 @@
       <Filter>Containers</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ThreadPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AABB.h">
+      <Filter>RenderObjects\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)BVHNode.h">
+      <Filter>RenderObjects\BVH</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">
@@ -41,6 +47,9 @@
     </Filter>
     <Filter Include="Containers">
       <UniqueIdentifier>{ad97c99c-ec98-4e37-9535-ce1a25976377}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderObjects\BVH">
+      <UniqueIdentifier>{6a31e51a-558d-42c0-aa23-153058a65159}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

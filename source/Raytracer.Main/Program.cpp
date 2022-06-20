@@ -18,7 +18,7 @@
 #include "helper.h"
 #include "Ray.h"
 #include "Camera.h"
-#include "RenderObjectList.h"
+#include "BVHNode.h"
 #include "Sphere.h"
 #include "Material_Lambertian.h"
 #include "Material_Metal.h"
@@ -99,11 +99,11 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
-	RenderObjectList world;
+	std::vector<std::shared_ptr<IRenderObject>> world;
 
 	// ------------------------------------------------------------ generate random world ------------------------------------------------------
 	std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
-	world.add(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+	world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
 
 	for (std::int32_t i = -11; i < 11; ++i)
 	{
@@ -119,33 +119,35 @@ int main(int, char**)
 					// diffuse
 					auto albedo = color::random() * color::random();
 					sphere_material = std::make_shared<Material_Lambertian>(albedo);
-					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
 				}
 				else if (choose_mat < 0.95) {
 					// metal
 					auto albedo = color::random(0.5, 1);
 					auto fuzz = get_random(0, 0.5);
 					sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
-					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
 				}
 				else {
 					// glass
 					sphere_material = std::make_shared<Material_Dielectric>(1.5);
-					world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
 				}
 			}
 		}
 	}
 
 	std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
-	world.add(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material1));
+	world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material1));
 
 	std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
-	world.add(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material2));
+	world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material2));
 
 	std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
-	world.add(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+	world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
 	// // --------------------------------------------------------------------------------------------------------------------------------------
+
+	BVHNode world_bvh{ world };
 
 	// RENDER IMAGE
 	Camera camera{ pos3 {13,2,3}, pos3{0,0,0}, 20.0, vec3{0,1,0}, 0.1, 10.0 };
@@ -196,7 +198,7 @@ int main(int, char**)
 				if (ImGui::Button("let us begin."))
 				{
 					renderstarted = true;
-					StartRendering(*threadpool, static_cast<std::size_t>(gui_samplesperpixel), static_cast<std::size_t>(gui_bouncelimit), camera, world, img_buffer);
+					StartRendering(*threadpool, static_cast<std::size_t>(gui_samplesperpixel), static_cast<std::size_t>(gui_bouncelimit), camera, world_bvh, img_buffer);
 				}
 
 				ImGui::InputInt("Samples per Pixel", &gui_samplesperpixel);

@@ -13,11 +13,14 @@ namespace Library
 
 		void add(std::shared_ptr<IRenderObject> renderobject);
 
-		virtual bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& rec) const override;
+		virtual bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& hitinfo) const override;
+		bool aabb(AABB& out_box) const override;
 
-		void clear();
+		const std::vector<std::shared_ptr<IRenderObject>>& List() const { return _renderobjects; };
+		std::size_t Size() const { return _renderobjects.size(); };
+		void Clear() { _renderobjects.clear(); };
 
-	public:
+	private:
 		std::vector<std::shared_ptr<IRenderObject>> _renderobjects;
 	};
 }

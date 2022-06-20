@@ -39,4 +39,20 @@ namespace Library
 
         return true;
     }
+
+	bool Sphere::aabb(AABB& out_box) const
+	{
+        out_box = AABB
+        {
+            vec3{_center[0] - _radius, _center[1] - _radius,_center[2] - _radius},
+            vec3{_center[0] + _radius, _center[1] + _radius,_center[2] + _radius}
+        };
+
+		return true;
+	}
+
+	precision Sphere::aabb_area() const
+	{
+        return _radius * _radius * _radius * 8;
+	}
 }

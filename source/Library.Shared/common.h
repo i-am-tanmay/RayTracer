@@ -34,6 +34,11 @@ namespace Library
 		return ((max_excluded - min_included) * get_random01()) + min_included;
 	}
 
+	inline int get_random_int(int min_included, int max_included)
+	{
+		return static_cast<int>(get_random(min_included, max_included + 1));
+	}
+
 	inline precision clamp(precision val, precision min, precision max)
 	{
 		const precision res = (val < min) ? min : val;

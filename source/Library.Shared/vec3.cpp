@@ -16,7 +16,7 @@ namespace Library
 	vec3 operator*(const precision& val, const vec3& vec) { return vec3(val * vec._vec[0], val * vec._vec[1], val * vec._vec[2]); }
 	vec3 operator*(const vec3& vec, const precision& val) { return val * vec; }
 
-	vec3 operator/(vec3 vec, const precision& val) { return (1 / val) * vec; }
+	vec3 operator/(const vec3& vec, const precision& val) { return (1 / val) * vec; }
 
 	precision dot(const vec3& lhs, const vec3& rhs)
 	{
