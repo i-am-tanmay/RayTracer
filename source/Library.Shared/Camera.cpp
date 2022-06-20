@@ -3,7 +3,7 @@
 
 namespace Library
 {
-	Camera::Camera(pos3 lookfrom, pos3 lookat, precision vertical_fov_degrees, vec3 vertical_up, precision aperture, precision focus_dist)
+	Camera::Camera(const pos3& lookfrom, const pos3& lookat, const precision& vertical_fov_degrees, const pos3& vertical_up, const precision& aperture, const precision& focus_dist)
 	{
 		precision viewport_height = focus_dist * tan(degrees_to_radians(vertical_fov_degrees) / 2);
 		precision viewport_width = aspect_ratio * viewport_height;
@@ -20,7 +20,7 @@ namespace Library
 		_lensradius = aperture / 2;
 	}
 
-	Ray Camera::get_ray(precision u, precision v) const
+	Ray Camera::get_ray(const precision& u, const precision& v) const
 	{
 		vec3 rand_disc = _lensradius * random_in_unit_circle();
 		vec3 offset = _u * rand_disc.x() + _v * rand_disc.y();

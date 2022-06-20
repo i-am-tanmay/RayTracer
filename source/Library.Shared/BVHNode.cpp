@@ -42,7 +42,7 @@ namespace Library
 			std::sort(list_objects_sort.begin(), list_objects_sort.end(), comparator);
 
 			precision min_SAH = std::numeric_limits<precision>::max();
-			std::size_t mid;
+			std::size_t mid{ 0 };
 			for (std::size_t i = 0; i < count - 1; ++i)
 			{
 				precision SAH = i * list_objects_sort[i]->aabb_area() + (count - 1 - i) * list_objects_sort[count - 1 - i]->aabb_area();

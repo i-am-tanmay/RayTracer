@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp">
-      <Filter>RenderObjects</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)vec3.cpp">
       <Filter>Containers</Filter>
     </ClCompile>
@@ -15,6 +12,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)BVHNode.cpp">
       <Filter>RenderObjects\BVH</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -22,9 +22,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderObject.h">
-      <Filter>RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h">
       <Filter>RenderObjects</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)vec3.h">
@@ -40,6 +37,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)BVHNode.h">
       <Filter>RenderObjects\BVH</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Texture.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">
@@ -50,6 +51,9 @@
     </Filter>
     <Filter Include="RenderObjects\BVH">
       <UniqueIdentifier>{6a31e51a-558d-42c0-aa23-153058a65159}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderObjects\Primitives">
+      <UniqueIdentifier>{d9539475-bf28-4ea8-b2c1-1dd2ee1c670b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -23,6 +23,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Texture.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ThreadPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)vec3.h" />
   </ItemGroup>

@@ -7,10 +7,10 @@ namespace Library
 	class Camera final
 	{
 	public:
-		Camera(pos3 lookfrom, pos3 lookat, precision vertical_fov_degrees, vec3 vertical_up = vec3{ 0,1,0 }, precision aperture = 0, precision focus_dist = 1.0);
+		Camera(const pos3& lookfrom, const pos3& lookat, const precision& vertical_fov_degrees, const pos3& vertical_up = vec3{ 0,1,0 }, const precision& aperture = 0, const precision& focus_dist = 1.0);
 		~Camera() = default;
 
-		Ray get_ray(precision u, precision v) const;
+		Ray get_ray(const precision& u, const precision& v) const;
 
 	private:
 		pos3 _origin;

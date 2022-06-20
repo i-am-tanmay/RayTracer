@@ -45,7 +45,7 @@ static ID3D11SamplerState* simplequad_samplerstate{ nullptr };
 static ID3D11ShaderResourceView* img_buffer_srv{ nullptr };
 
 // dx helper functions
-bool CreateDeviceD3D(HWND hWnd, void* img_buffer);
+bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 bool CreateRenderTarget();
 void CleanupRenderTarget();
@@ -68,7 +68,7 @@ int main(int, char**)
 	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("RayTracer"), WS_OVERLAPPEDWINDOW, 100, 100, img_width, img_height, nullptr, nullptr, wc.hInstance, nullptr);
 
 	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd, img_buffer))
+	if (!CreateDeviceD3D(hwnd))
 	{
 		delete[] img_buffer;
 		CleanupDeviceD3D();
@@ -94,6 +94,9 @@ int main(int, char**)
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 	D3D11_MAPPED_SUBRESOURCE mapped_resource;
+
+	ID3D11Resource* img_buffer_resource;
+	img_buffer_srv->GetResource(&img_buffer_resource);
 #pragma endregion
 
 #pragma region RayTracing
@@ -211,12 +214,9 @@ int main(int, char**)
 					renderstarted = false;
 					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
 				}
-
-				ID3D11Resource* img_buffer_resource;
-				img_buffer_srv->GetResource(&img_buffer_resource);
-
+				
 				g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
-				memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(uint8_t));
+				std::memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(std::uint8_t));
 				g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
 			}
 
@@ -234,6 +234,7 @@ int main(int, char**)
 	}
 
 	// Cleanup
+	img_buffer_resource->Release();
 	delete threadpool.release();
 	delete[] img_buffer;
 	ImGui_ImplDX11_Shutdown();
@@ -276,7 +277,7 @@ void StartRendering(ThreadPool& threadpool, std::size_t samples_per_pixel, std::
 
 // Helper functions
 
-bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
+bool CreateDeviceD3D(HWND hWnd)
 {
 #pragma region Swap Chain
 	DXGI_SWAP_CHAIN_DESC sd;
@@ -471,12 +472,6 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
 	tex_description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	tex_description.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	// bind image buffer to texture sub-resource
-	D3D11_SUBRESOURCE_DATA tex_resource;
-	tex_resource.pSysMem = img_buffer;
-	tex_resource.SysMemPitch = tex_description.Width * 4;
-	tex_resource.SysMemSlicePitch = 0;
-
 	// texture view description
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
 	ZeroMemory(&srv_desc, sizeof(srv_desc));
@@ -487,7 +482,7 @@ bool CreateDeviceD3D(HWND hWnd, void* img_buffer)
 
 	// create the texture view
 	ID3D11Texture2D* texture{ nullptr };
-	ThrowIfFailed(g_pd3dDevice->CreateTexture2D(&tex_description, &tex_resource, &texture), "CreateTexture2D Failed");
+	ThrowIfFailed(g_pd3dDevice->CreateTexture2D(&tex_description, nullptr, &texture), "CreateTexture2D Failed");
 	if (texture == nullptr) return false;
 	ThrowIfFailed(g_pd3dDevice->CreateShaderResourceView(texture, &srv_desc, &img_buffer_srv), "CreateShaderResourceView Failed");
 	texture->Release();
@@ -525,7 +520,6 @@ void CleanupRenderTarget()
 {
 	if (g_mainRenderTargetView != nullptr) { g_mainRenderTargetView->Release(); g_mainRenderTargetView = nullptr; }
 }
-
 
 void CleanupDeviceD3D()
 {
@@ -581,6 +575,7 @@ inline void ThrowIfFailed(HRESULT hr, const char* const message)
 {
 	if (FAILED(hr))
 	{
+		std::cerr << message;
 		throw std::runtime_error(message);
 	}
 }

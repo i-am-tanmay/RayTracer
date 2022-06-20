@@ -10,10 +10,13 @@ namespace Library
 	struct HitInfo
 	{
 		pos3 pos;
-		precision ray_t;
+		precision ray_t{ 0 };
+
+		precision u{ 0 };
+		precision v{ 0 };
 
 		vec3 normal;
-		bool isFrontFace;
+		bool isFrontFace{ false };
 
 		std::shared_ptr<Material> material;
 

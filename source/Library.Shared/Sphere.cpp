@@ -34,10 +34,21 @@ namespace Library
 
         hitinfo.ray_t = root;
         hitinfo.pos = ray.at(hitinfo.ray_t);
-        hitinfo.hit_updatenormal(ray, ((hitinfo.pos - _center) / _radius));
+        vec3 out_normal = (hitinfo.pos - _center) / _radius;
+        hitinfo.hit_updatenormal(ray, out_normal);
+        get_uv(out_normal, hitinfo.u, hitinfo.v);
         hitinfo.material = _material;
 
         return true;
+    }
+
+    void Sphere::get_uv(const pos3& pos, precision& u, precision& v)
+    {
+        auto theta = acos(-pos.y());
+        auto phi = atan2(-pos.z(), pos.x()) + pi;
+
+        u = phi * pi_inverse * 0.5;
+        v = theta * pi_inverse;
     }
 
 	bool Sphere::aabb(AABB& out_box) const
