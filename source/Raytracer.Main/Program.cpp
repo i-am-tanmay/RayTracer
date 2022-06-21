@@ -25,10 +25,18 @@
 #include "Material_Metal.h"
 #include "Material_Dielectric.h"
 #include "Material_Light_Diffuse.h"
+
 #pragma warning (push, 0)
+#pragma warning(disable : 6262 26451 26819)
 #define STB_IMAGE_IMPLEMENTATION
 #include "ImageTexture.h"
 #pragma warning (pop)
+
+#pragma warning(push)
+#pragma warning(disable : 4996 26819 6385 6386 26451)
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#pragma warning(pop)
 
 using namespace Library;
 
@@ -153,10 +161,10 @@ int main(int, char**)
 	}
 
 	std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
-	world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material1));
+	world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material1));
 
 	std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
-	world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material2));
+	world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material2));
 
 	std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
 	world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
@@ -166,16 +174,16 @@ int main(int, char**)
 	world.push_back(std::make_shared<Sphere>(pos3(3, 1, 2), 1.0, earth_material));
 
 	std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ 4, 4, 4 });
-	world.push_back(std::make_shared<Rect_XY>(-1.5, 1.5, 0.5, 0.6, -3.1, light));
-	//world.push_back(std::make_shared<Rect_YZ>(1.5, 3, 0.5, 0.6, -3.1, light));
-	//world.push_back(std::make_shared<Rect_YZ>(-1.5, 1.5, 0.5, 0.6, -3.1, light));
+	world.push_back(std::make_shared<Rect_XY>(2, 3, 0.5, 0.6, -3, light));
+	world.push_back(std::make_shared<Rect_XZ>(2.9, 3, 0, 1, 2, light));
+	world.push_back(std::make_shared<Rect_YZ>(0, 1, 1, 1.1, 5, light));
 
 	// // --------------------------------------------------------------------------------------------------------------------------------------
 
 	BVHNode world_bvh{ world };
 
 	// RENDER IMAGE
-	Camera camera{ pos3 {13,2,3}, pos3{0,0,0}, 20.0, vec3{0,1,0}, 0.1, 10.0 };
+	Camera camera{ pos3 {13,5,3}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
 #pragma endregion
 
 	bool renderstarted = false;
@@ -208,8 +216,6 @@ int main(int, char**)
 		ImGui::NewFrame();
 #pragma endregion
 
-		g_pd3dDeviceContext->DrawIndexed(6, 0, 0);
-
 		{
 			ImGui::SetNextWindowPos(ImVec2{ 10,10 });
 
@@ -217,13 +223,43 @@ int main(int, char**)
 
 			if (!renderstarted)
 			{
-				const float clear_color[4] = { 0, 0, 0, 1 };
-				g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color);
+				//const float clear_color[4] = { 0, 0, 0, 1 };
+				//g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color);
 
 				if (ImGui::Button("let us begin."))
 				{
 					renderstarted = true;
-					StartRendering(*threadpool, static_cast<std::size_t>(gui_samplesperpixel), static_cast<std::size_t>(gui_bouncelimit), camera, world_bvh, img_buffer);
+
+					std::memset(img_buffer, 255, img_width* img_height * 4 * sizeof(std::uint8_t));
+
+					precision samples_inverse = 1.0 / gui_samplesperpixel;
+
+					for (std::size_t i = 0; i < img_height; ++i)
+					{
+						for (std::size_t ii = 0; ii < img_width; ++ii)
+						{
+							threadpool->EnqueueTask([&, i, ii, samples_inverse]
+								{
+									color pixel_color{ 0,0,0 };
+
+									for (int sample = 0; sample < gui_samplesperpixel; ++sample)
+									{
+										precision u = (ii + get_random01()) / (img_width - 1);
+										precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
+										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+									}
+
+									write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_inverse);
+								});
+						}
+					}
+				}
+
+				if (ImGui::Button("wallpaper engine."))
+				{
+					std::cout << "\ntime to write to file xo\n";
+					if (stbi_write_png("../../../../outputimage.png", img_width, img_height, 4, img_buffer, img_width * 4) == 0) std::cout << "couldn't write to PNG lolol";
+					else std::cout << "fin.\n";
 				}
 
 				ImGui::InputInt("Samples per Pixel", &gui_samplesperpixel);
@@ -247,6 +283,8 @@ int main(int, char**)
 			ImGui::End();
 		}
 		
+		g_pd3dDeviceContext->DrawIndexed(6, 0, 0);
+
 		// render imgui
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -268,35 +306,6 @@ int main(int, char**)
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return 0;
-}
-
-// RayTracing
-
-void StartRendering(ThreadPool& threadpool, std::size_t samples_per_pixel, std::size_t bounce_limit, Camera& camera, IRenderObject& world, std::uint8_t* img_buffer)
-{
-	std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
-
-	precision samples_inverse = 1.0 / samples_per_pixel;
-
-	for (std::size_t i = 0; i < img_height; ++i)
-	{
-		for (std::size_t ii = 0; ii < img_width; ++ii)
-		{
-			threadpool.EnqueueTask([&, i, ii]
-				{
-					color pixel_color{ 0,0,0 };
-
-					for (std::size_t sample = 0; sample < samples_per_pixel; ++sample)
-					{
-						precision u = (ii + get_random01()) / (img_width - 1);
-						precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-						pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
-					}
-
-					write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_inverse);
-				});
-		}
-	}
 }
 
 // Helper functions
