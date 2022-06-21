@@ -20,9 +20,15 @@
 #include "Camera.h"
 #include "BVHNode.h"
 #include "Sphere.h"
+#include "Rect.h"
 #include "Material_Lambertian.h"
 #include "Material_Metal.h"
 #include "Material_Dielectric.h"
+#include "Material_Light_Diffuse.h"
+#pragma warning (push, 0)
+#define STB_IMAGE_IMPLEMENTATION
+#include "ImageTexture.h"
+#pragma warning (pop)
 
 using namespace Library;
 
@@ -118,7 +124,13 @@ int main(int, char**)
 			if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
 				std::shared_ptr<Material> sphere_material;
 
-				if (choose_mat < 0.8) {
+				if (choose_mat < 0.2) {
+					// light
+					auto albedo = color::random() * color::random();
+					sphere_material = std::make_shared<Material_Light_Diffuse>(albedo);
+					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else if (choose_mat < 0.8) {
 					// diffuse
 					auto albedo = color::random() * color::random();
 					sphere_material = std::make_shared<Material_Lambertian>(albedo);
@@ -148,6 +160,16 @@ int main(int, char**)
 
 	std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
 	world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+
+	std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
+	std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
+	world.push_back(std::make_shared<Sphere>(pos3(3, 1, 2), 1.0, earth_material));
+
+	std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ 4, 4, 4 });
+	world.push_back(std::make_shared<Rect_XY>(-1.5, 1.5, 0.5, 0.6, -3.1, light));
+	//world.push_back(std::make_shared<Rect_YZ>(1.5, 3, 0.5, 0.6, -3.1, light));
+	//world.push_back(std::make_shared<Rect_YZ>(-1.5, 1.5, 0.5, 0.6, -3.1, light));
+
 	// // --------------------------------------------------------------------------------------------------------------------------------------
 
 	BVHNode world_bvh{ world };
@@ -254,6 +276,8 @@ void StartRendering(ThreadPool& threadpool, std::size_t samples_per_pixel, std::
 {
 	std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
 
+	precision samples_inverse = 1.0 / samples_per_pixel;
+
 	for (std::size_t i = 0; i < img_height; ++i)
 	{
 		for (std::size_t ii = 0; ii < img_width; ++ii)
@@ -269,7 +293,7 @@ void StartRendering(ThreadPool& threadpool, std::size_t samples_per_pixel, std::
 						pixel_color += ray_color(camera.get_ray(u, v), world, bounce_limit);
 					}
 
-					write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_per_pixel);
+					write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_inverse);
 				});
 		}
 	}

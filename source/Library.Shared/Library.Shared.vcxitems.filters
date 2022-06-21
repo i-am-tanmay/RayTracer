@@ -15,12 +15,29 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp">
       <Filter>RenderObjects\Primitives</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ImageTexture.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_Dielectric.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_Lambertian.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_Metal.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_Light_Diffuse.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Rect.cpp">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)common.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Material.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderObject.h">
       <Filter>RenderObjects</Filter>
     </ClInclude>
@@ -37,8 +54,37 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)BVHNode.h">
       <Filter>RenderObjects\BVH</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Texture.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Texture.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)stb_image_read.h">
+      <Filter>External Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)stb_image_write.h">
+      <Filter>External Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ImageTexture.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_Dielectric.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_Lambertian.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_Metal.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_Light_Diffuse.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Rect.h">
       <Filter>RenderObjects\Primitives</Filter>
     </ClInclude>
   </ItemGroup>
@@ -54,6 +100,15 @@
     </Filter>
     <Filter Include="RenderObjects\Primitives">
       <UniqueIdentifier>{d9539475-bf28-4ea8-b2c1-1dd2ee1c670b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Texture">
+      <UniqueIdentifier>{854f6f7e-1de9-4886-bbd5-c340a236203e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External Libraries">
+      <UniqueIdentifier>{52e78a28-1783-44b0-a34a-6adc20cc1f25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Materials">
+      <UniqueIdentifier>{629b3607-327f-4663-93f2-9752b8c457a7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

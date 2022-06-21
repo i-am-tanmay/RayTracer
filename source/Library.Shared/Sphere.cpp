@@ -64,6 +64,6 @@ namespace Library
 
 	precision Sphere::aabb_area() const
 	{
-        return _radius * _radius * _radius * 8;
+        return 4 * pi * _radius * _radius;
 	}
 }
