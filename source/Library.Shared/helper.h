@@ -20,7 +20,7 @@ namespace Library
 		//out[3] = static_cast<std::uint8_t>(255);
 	}
 
-	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
+	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit, color skybox)
 	{
 		if (bounce_limit == 0) return color{ 0,0,0 };
 
@@ -32,12 +32,12 @@ namespace Library
 			color emission = hitinfo.material->emitted(hitinfo.u, hitinfo.v, hitinfo.pos);
 
 			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered))
-				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1);
+				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1, skybox);
 			else
 				return emission;
 		}
 
-		return color(0, 0, 0);
+		return skybox;
 
 		// GRADIENT
 		//vec3 direction = unit_vector(ray.direction());

@@ -66,8 +66,190 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void ThrowIfFailed(HRESULT hr, const char* const message = "");
 
-// RayTracing
-void StartRendering(ThreadPool& threadpool, std::size_t samples_per_pixel, std::size_t bounce_limit, Camera& camera, IRenderObject& world, std::uint8_t* img_buffer);
+void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, Camera& camera, color& skybox, int index)
+{
+	switch (index)
+	{
+	case 0:
+	{
+		camera = Camera{ pos3 {0,2,-10}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0.5, 0.7, 1.0 };
+
+		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1, ground_material));
+	}
+	break;
+
+	case 1:
+	{
+		camera = Camera{ pos3 {0,2,-10}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0.5, 0.7, 1.0 };
+
+		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+
+		std::shared_ptr<Material_Lambertian> diffuse = std::make_shared<Material_Lambertian>(color(0.1, 0.2, 1.0));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1, diffuse));
+
+		std::shared_ptr<Material_Metal> metal = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
+		world.push_back(std::make_shared<Sphere>(pos3(2, 1, 0), 1, metal));
+
+		std::shared_ptr<Material_Dielectric> glass = std::make_shared<Material_Dielectric>(1.5);
+		world.push_back(std::make_shared<Sphere>(pos3(-2, 1, 0), 1.0, glass));
+		world.push_back(std::make_shared<Sphere>(pos3(-2, 1, 0), -0.95, glass));
+	}
+	break;
+
+	case 2:
+	{
+		camera = Camera{ pos3 {13,2,3}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0.5, 0.7, 0.8 };
+
+		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+
+		for (std::int32_t i = -11; i < 11; ++i)
+		{
+			for (std::int32_t ii = -11; ii < 11; ++ii)
+			{
+				precision choose_mat = get_random01();
+				pos3 center(i + 0.9 * get_random01(), 0.2, ii + 0.9 * get_random01());
+
+				if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
+					std::shared_ptr<Material> sphere_material;
+
+					if (choose_mat < 0.8) {
+						// diffuse
+						auto albedo = color::random() * color::random();
+						sphere_material = std::make_shared<Material_Lambertian>(albedo);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.95) {
+						// metal
+						auto albedo = color::random(0.5, 1);
+						auto fuzz = get_random(0, 0.5);
+						sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else {
+						// glass
+						sphere_material = std::make_shared<Material_Dielectric>(1.5);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+				}
+			}
+		}
+
+		std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
+		world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material1));
+
+		std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material2));
+
+		std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
+		world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+	}
+	break;
+
+	case 3:
+	{
+		camera = Camera{ pos3 {0,2,-10}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0, 0, 0 };
+
+
+		std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
+		std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
+		world.push_back(std::make_shared<Sphere>(pos3(0, 0, 0), 1.0, earth_material));
+
+		std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ .99*4, .98*4, .92*4 });
+		world.push_back(std::make_shared<Sphere>(pos3(-15, 0, 0), 10, light));
+	}
+	break;
+
+	case 4:
+	{
+		camera = Camera{ pos3 {-4,5,-10}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0, 0, 0 };
+
+
+		std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
+		std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
+		world.push_back(std::make_shared<Sphere>(pos3(0, 0, 0), 1.0, earth_material));
+
+		std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ .99 * 4, .98 * 4, .92 * 4 });
+		world.push_back(std::make_shared<Rect_XZ>(-1, 1, -1, 1, 2, light));
+		world.push_back(std::make_shared<Rect_YZ>(-1, 1, -1, 1, -2, light));
+	}
+	break;
+
+	case 5:
+	{
+		camera = Camera{ pos3 {13,5,3}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
+		skybox = color{ 0,0,0 };
+
+		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+
+		for (std::int32_t i = -11; i < 11; ++i)
+		{
+			for (std::int32_t ii = -11; ii < 11; ++ii)
+			{
+				precision choose_mat = get_random01();
+				pos3 center(i + 0.9 * get_random01(), 0.2, ii + 0.9 * get_random01());
+
+				if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
+					std::shared_ptr<Material> sphere_material;
+
+					if (choose_mat < 0.2) {
+						// light
+						auto albedo = color::random() * color::random();
+						sphere_material = std::make_shared<Material_Light_Diffuse>(albedo);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.8) {
+						// diffuse
+						auto albedo = color::random() * color::random();
+						sphere_material = std::make_shared<Material_Lambertian>(albedo);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.95) {
+						// metal
+						auto albedo = color::random(0.5, 1);
+						auto fuzz = get_random(0, 0.5);
+						sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else {
+						// glass
+						sphere_material = std::make_shared<Material_Dielectric>(1.5);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+				}
+			}
+		}
+
+		std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
+		world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material1));
+
+		std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material2));
+
+		std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
+		world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+
+		std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
+		std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
+		world.push_back(std::make_shared<Sphere>(pos3(3, 1, 2), 1.0, earth_material));
+
+		std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ 4, 4, 4 });
+		world.push_back(std::make_shared<Rect_XY>(2, 3, 0.5, 0.6, -3, light));
+		world.push_back(std::make_shared<Rect_XZ>(2.9, 3, 0, 1, 2, light));
+		world.push_back(std::make_shared<Rect_YZ>(0, 1, 1, 1.1, 5, light));
+	}
+	break;
+	}
+}
 
 int main(int, char**)
 {
@@ -116,74 +298,16 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
+	Camera camera{ pos3 {13,5,3}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
 	std::vector<std::shared_ptr<IRenderObject>> world;
-
-	// ------------------------------------------------------------ generate random world ------------------------------------------------------
-	std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
-	world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
-
-	for (std::int32_t i = -11; i < 11; ++i)
-	{
-		for (std::int32_t ii = -11; ii < 11; ++ii)
-		{
-			precision choose_mat = get_random01();
-			pos3 center(i + 0.9 * get_random01(), 0.2, ii + 0.9 * get_random01());
-
-			if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
-				std::shared_ptr<Material> sphere_material;
-
-				if (choose_mat < 0.2) {
-					// light
-					auto albedo = color::random() * color::random();
-					sphere_material = std::make_shared<Material_Light_Diffuse>(albedo);
-					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
-				}
-				else if (choose_mat < 0.8) {
-					// diffuse
-					auto albedo = color::random() * color::random();
-					sphere_material = std::make_shared<Material_Lambertian>(albedo);
-					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
-				}
-				else if (choose_mat < 0.95) {
-					// metal
-					auto albedo = color::random(0.5, 1);
-					auto fuzz = get_random(0, 0.5);
-					sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
-					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
-				}
-				else {
-					// glass
-					sphere_material = std::make_shared<Material_Dielectric>(1.5);
-					world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
-				}
-			}
-		}
-	}
-
-	std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
-	world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material1));
-
-	std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
-	world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material2));
-
-	std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
-	world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
-
-	std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
-	std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
-	world.push_back(std::make_shared<Sphere>(pos3(3, 1, 2), 1.0, earth_material));
-
-	std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ 4, 4, 4 });
-	world.push_back(std::make_shared<Rect_XY>(2, 3, 0.5, 0.6, -3, light));
-	world.push_back(std::make_shared<Rect_XZ>(2.9, 3, 0, 1, 2, light));
-	world.push_back(std::make_shared<Rect_YZ>(0, 1, 1, 1.1, 5, light));
+	color skybox;
+	GetWorld(world, camera, skybox, 5);
 
 	// // --------------------------------------------------------------------------------------------------------------------------------------
 
 	BVHNode world_bvh{ world };
 
 	// RENDER IMAGE
-	Camera camera{ pos3 {13,5,3}, pos3{0,0,0}, 30.0, vec3{0,1,0}, 0.1, 10.0 };
 #pragma endregion
 
 	bool renderstarted = false;
@@ -230,7 +354,7 @@ int main(int, char**)
 				{
 					renderstarted = true;
 
-					std::memset(img_buffer, 255, img_width* img_height * 4 * sizeof(std::uint8_t));
+					std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
 
 					precision samples_inverse = 1.0 / gui_samplesperpixel;
 
@@ -246,7 +370,7 @@ int main(int, char**)
 									{
 										precision u = (ii + get_random01()) / (img_width - 1);
 										precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit), skybox);
 									}
 
 									write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_inverse);
@@ -272,7 +396,7 @@ int main(int, char**)
 					renderstarted = false;
 					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
 				}
-				
+
 				g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
 				std::memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(std::uint8_t));
 				g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
@@ -282,7 +406,7 @@ int main(int, char**)
 
 			ImGui::End();
 		}
-		
+
 		g_pd3dDeviceContext->DrawIndexed(6, 0, 0);
 
 		// render imgui
