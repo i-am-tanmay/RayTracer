@@ -33,6 +33,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Rect.cpp">
       <Filter>RenderObjects\Primitives</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Cuboid.cpp">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Translate.cpp">
+      <Filter>RenderObjects\Transformations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Rotate_Y.cpp">
+      <Filter>RenderObjects\Transformations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -87,6 +96,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Rect.h">
       <Filter>RenderObjects\Primitives</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Cuboid.h">
+      <Filter>RenderObjects\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Translate.h">
+      <Filter>RenderObjects\Transformations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Rotate_Y.h">
+      <Filter>RenderObjects\Transformations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">
@@ -109,6 +127,9 @@
     </Filter>
     <Filter Include="Materials">
       <UniqueIdentifier>{629b3607-327f-4663-93f2-9752b8c457a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderObjects\Transformations">
+      <UniqueIdentifier>{4a957228-7361-48c9-886e-9e008ccd1b99}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

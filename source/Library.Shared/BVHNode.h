@@ -9,10 +9,9 @@ namespace Library
 	public:
 		BVHNode(const std::vector<std::shared_ptr<IRenderObject>>& list_objects);
 
-		bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& hitinfo) const override;
-		bool aabb(AABB& out_box) const override;
-
-		precision aabb_area() const override;
+		virtual bool hit(const Ray& ray, const precision& t_min, const precision& t_max, HitInfo& hitinfo) const override;
+		virtual bool aabb(AABB& out_box) const override;
+		virtual precision aabb_area() const override;
 
 	private:
 		std::shared_ptr<IRenderObject> _left;
