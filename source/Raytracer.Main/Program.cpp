@@ -45,7 +45,7 @@
 
 using namespace Library;
 
-const static std::size_t img_width = 1280;
+const static std::size_t img_width = 720;
 const static std::size_t img_height = static_cast<std::size_t>(img_width / aspect_ratio);
 
 // dx11
@@ -109,7 +109,9 @@ int main(int, char**)
 	//ImGui_ImplWin32_EnableDpiAwareness();
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("Ray Tracer"), nullptr };
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("RayTracer"), WS_OVERLAPPEDWINDOW, 100, 100, img_width, img_height, nullptr, nullptr, wc.hInstance, nullptr);
+	RECT window_rect{ 0,0,img_width, img_height };
+	AdjustWindowRect(&window_rect, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("RayTracer"), WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 100, 100, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, nullptr, nullptr, wc.hInstance, nullptr);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd))
@@ -146,7 +148,7 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
-	Camera camera{ pos3 {278,260,-850}, pos3{278,260,0}, 40.0, vec3{0,1,0}};
+	Camera camera{ pos3 {278,278,-850}, pos3{278,278,0}, 40.0, vec3{0,1,0} };
 	std::vector<std::shared_ptr<IRenderObject>> world;
 	GetWorld(world, 0);
 
@@ -288,7 +290,7 @@ bool CreateDeviceD3D(HWND hWnd)
 	ZeroMemory(&sd, sizeof(sd));
 
 	// back buffer init
-	sd.BufferCount = 2;
+	sd.BufferCount = 1;
 	sd.BufferDesc.Width = 0;
 	sd.BufferDesc.Height = 0;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
