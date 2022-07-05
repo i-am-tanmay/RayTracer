@@ -22,9 +22,10 @@
 #include "Sphere.h"
 #include "Rect.h"
 #include "Cuboid.h"
+#include "ConstantDensityMedium.h"
 
 #include "Translate.h"
-#include "Rotate_Y.h"
+#include "Rotate.h"
 
 #include "Material_Lambertian.h"
 #include "Material_Metal.h"
@@ -45,7 +46,7 @@
 
 using namespace Library;
 
-const static std::size_t img_width = 720;
+const static std::size_t img_width = 1280;
 const static std::size_t img_height = static_cast<std::size_t>(img_width / aspect_ratio);
 
 // dx11
@@ -89,11 +90,13 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int)
 	std::shared_ptr<IRenderObject> cuboid_1 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 165, 165, white);
 	cuboid_1 = std::make_shared<Rotate_Y>(cuboid_1, -18);
 	cuboid_1 = std::make_shared<Translate>(cuboid_1, vec3{ 212.5, 82.5, 147.5 });
+	cuboid_1 = std::make_shared<ConstantDensityMedium>(cuboid_1, color{ 1,1,1 }, .01);
 	world.push_back(cuboid_1);
 
 	std::shared_ptr<IRenderObject> cuboid_2 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 330, 165, white);
 	cuboid_2 = std::make_shared<Rotate_Y>(cuboid_2, 15);
 	cuboid_2 = std::make_shared<Translate>(cuboid_2, vec3{ 347.5, 165, 377.5 });
+	cuboid_2 = std::make_shared<ConstantDensityMedium>(cuboid_2, color{ 0,0,0 }, .01);
 	world.push_back(cuboid_2);
 
 	world.push_back(std::make_shared<Rect_XZ>(213, 343, 227, 332, 554, light));

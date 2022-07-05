@@ -1,12 +1,10 @@
 #pragma once
-#include "common.h"
-#include <functional>
+#include "vec3.h"
 
 namespace Library
 {
 	struct HitInfo;
 	class Ray;
-	class vec3;
 
 	class Material
 	{

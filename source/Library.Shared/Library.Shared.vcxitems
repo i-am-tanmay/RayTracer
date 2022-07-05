@@ -18,6 +18,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)BVHNode.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)common.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Cuboid.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ImageTexture.h" />
@@ -27,9 +28,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Material_Lambertian.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Material_Light_Diffuse.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Material_Metal.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_RandomScatter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Rect.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Rotate_Y.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Rotate.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Sphere.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)stb_image_read.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)stb_image_write.h" />
@@ -42,14 +44,16 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)AABB.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BVHNode.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Cuboid.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ImageTexture.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Material_Dielectric.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Material_Lambertian.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Material_Light_Diffuse.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Material_Metal.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_RandomScatter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Rect.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Rotate_Y.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Rotate.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Sphere.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ThreadPool.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Translate.cpp" />

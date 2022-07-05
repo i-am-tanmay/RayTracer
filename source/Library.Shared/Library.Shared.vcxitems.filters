@@ -39,9 +39,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Translate.cpp">
       <Filter>RenderObjects\Transformations</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Rotate_Y.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)Rotate.cpp">
       <Filter>RenderObjects\Transformations</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Material_RandomScatter.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -102,9 +106,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Translate.h">
       <Filter>RenderObjects\Transformations</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Rotate_Y.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Rotate.h">
       <Filter>RenderObjects\Transformations</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Material_RandomScatter.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">
