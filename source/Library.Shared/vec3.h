@@ -63,7 +63,7 @@ namespace Library
 
 		bool is_near_zero() const;
 
-		friend void write_color(std::uint8_t* out, const vec3& pixel_color, const precision& samples_inverse);
+		friend void write_color(std::uint8_t* out, float* out_float, const vec3& pixel_color, const precision& samples_inverse);
 		friend vec3 operator+(const vec3& lhs, const vec3& rhs);
 		friend vec3 operator-(const vec3& lhs, const vec3& rhs);
 		friend vec3 operator*(const vec3& lhs, const vec3& rhs);

@@ -45,7 +45,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Material_RandomScatter.cpp">
       <Filter>Materials</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.cpp">
+      <Filter>RenderObjects\Volumes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
@@ -112,7 +114,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Material_RandomScatter.h">
       <Filter>Materials</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConstantDensityMedium.h">
+      <Filter>RenderObjects\Volumes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="RenderObjects">
@@ -138,6 +142,9 @@
     </Filter>
     <Filter Include="RenderObjects\Transformations">
       <UniqueIdentifier>{4a957228-7361-48c9-886e-9e008ccd1b99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderObjects\Volumes">
+      <UniqueIdentifier>{620955ff-481c-45b7-8802-91dfdaa6ece9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

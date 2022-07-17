@@ -12,6 +12,11 @@
 #include <directxmath.h>
 #include <tchar.h>
 
+#pragma warning (push, 0)
+#pragma warning(disable : 26439 26812)
+#include <oidn\oidn.hpp>
+#pragma warning (pop)
+
 #include "common.h"
 #include "ThreadPool.h"
 #include "vec3.h"
@@ -90,13 +95,13 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int)
 	std::shared_ptr<IRenderObject> cuboid_1 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 165, 165, white);
 	cuboid_1 = std::make_shared<Rotate_Y>(cuboid_1, -18);
 	cuboid_1 = std::make_shared<Translate>(cuboid_1, vec3{ 212.5, 82.5, 147.5 });
-	cuboid_1 = std::make_shared<ConstantDensityMedium>(cuboid_1, color{ 1,1,1 }, .01);
+	//cuboid_1 = std::make_shared<ConstantDensityMedium>(cuboid_1, color{ 1,1,1 }, .01);
 	world.push_back(cuboid_1);
 
 	std::shared_ptr<IRenderObject> cuboid_2 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 330, 165, white);
 	cuboid_2 = std::make_shared<Rotate_Y>(cuboid_2, 15);
 	cuboid_2 = std::make_shared<Translate>(cuboid_2, vec3{ 347.5, 165, 377.5 });
-	cuboid_2 = std::make_shared<ConstantDensityMedium>(cuboid_2, color{ 0,0,0 }, .01);
+	//cuboid_2 = std::make_shared<ConstantDensityMedium>(cuboid_2, color{ 0,0,0 }, .01);
 	world.push_back(cuboid_2);
 
 	world.push_back(std::make_shared<Rect_XZ>(213, 343, 227, 332, 554, light));
@@ -105,6 +110,12 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int)
 int main(int, char**)
 {
 	std::uint8_t* img_buffer = new std::uint8_t[img_width * img_height * 4];
+	std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
+
+	float* denoise_color = new float[img_width * img_height * 3];
+	float* denoise_normal = new float[img_width * img_height * 3];
+	float* denoise_albedo = new float[img_width * img_height * 3];
+	std::memset(denoise_albedo, 0, img_width * img_height * 3 * sizeof(float));
 
 #pragma region INIT DX11 & IMGUI
 
@@ -120,6 +131,9 @@ int main(int, char**)
 	if (!CreateDeviceD3D(hwnd))
 	{
 		delete[] img_buffer;
+		delete[] denoise_color;
+		delete[] denoise_normal;
+		delete[] denoise_albedo;
 		CleanupDeviceD3D();
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return 1;
@@ -159,9 +173,31 @@ int main(int, char**)
 
 	BVHNode world_bvh{ world };
 
-	// RENDER IMAGE
+	oidn::DeviceRef device = oidn::newDevice();
+	device.commit();
+
+	oidn::FilterRef filter = device.newFilter("RT");
+	filter.setImage("color", denoise_color, oidn::Format::Float3, img_width, img_height);
+	filter.setImage("albedo", denoise_albedo, oidn::Format::Float3, img_width, img_height);
+	filter.setImage("normal", denoise_normal, oidn::Format::Float3, img_width, img_height);
+	filter.setImage("output", denoise_color, oidn::Format::Float3, img_width, img_height);
+	filter.set("hdr", false);
+	filter.set("cleanAux", true);
+	filter.commit();
+
+	oidn::FilterRef albedoFilter = device.newFilter("RT"); // same filter type as for beauty
+	albedoFilter.setImage("albedo", denoise_albedo, oidn::Format::Float3, img_width, img_height);
+	albedoFilter.setImage("output", denoise_albedo, oidn::Format::Float3, img_width, img_height);
+	albedoFilter.commit();
+
+	oidn::FilterRef normalFilter = device.newFilter("RT"); // same filter type as for beauty
+	normalFilter.setImage("normal", denoise_normal, oidn::Format::Float3, img_width, img_height);
+	normalFilter.setImage("output", denoise_normal, oidn::Format::Float3, img_width, img_height);
+	normalFilter.commit();
+
 #pragma endregion
 
+	// RENDER IMAGE
 	bool renderstarted = false;
 	std::unique_ptr<ThreadPool> threadpool = std::make_unique<ThreadPool>(std::max(std::thread::hardware_concurrency(), 2u) - 1u);
 
@@ -206,8 +242,6 @@ int main(int, char**)
 				{
 					renderstarted = true;
 
-					std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
-
 					precision samples_inverse = 1.0 / gui_samplesperpixel;
 
 					for (std::size_t i = 0; i < img_height; ++i)
@@ -222,10 +256,10 @@ int main(int, char**)
 									{
 										precision u = (ii + get_random01()) / (img_width - 1);
 										precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit), &denoise_normal[(i * img_width + ii) * 3], &denoise_albedo[(i * img_width + ii) * 3]);
 									}
 
-									write_color(&img_buffer[(i * img_width + ii) * 4], pixel_color, samples_inverse);
+									write_color(&img_buffer[(i * img_width + ii) * 4], &denoise_color[(i * img_width + ii) * 3], pixel_color, samples_inverse);
 								});
 						}
 					}
@@ -247,6 +281,27 @@ int main(int, char**)
 				{
 					renderstarted = false;
 					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
+				}
+
+				if (ImGui::Button("noizyboi"))
+				{
+					albedoFilter.execute();
+					normalFilter.execute();
+					filter.execute();
+
+					const char* errorMessage;
+					if (device.getError(errorMessage) != oidn::Error::None)
+						std::cout << "\n\nError: " << errorMessage << std::endl;
+
+					for (std::size_t i = 0; i < img_height; ++i)
+					{
+						for (std::size_t ii = 0; ii < img_width; ++ii)
+						{
+							img_buffer[((i * img_width + ii) * 4) + 0] = static_cast<std::uint8_t>(256 * denoise_color[((i * img_width + ii) * 3) + 0]);
+							img_buffer[((i * img_width + ii) * 4) + 1] = static_cast<std::uint8_t>(256 * denoise_color[((i * img_width + ii) * 3) + 1]);
+							img_buffer[((i * img_width + ii) * 4) + 2] = static_cast<std::uint8_t>(256 * denoise_color[((i * img_width + ii) * 3) + 2]);
+						}
+					}
 				}
 
 				g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
@@ -273,6 +328,9 @@ int main(int, char**)
 	img_buffer_resource->Release();
 	delete threadpool.release();
 	delete[] img_buffer;
+	delete[] denoise_color;
+	delete[] denoise_normal;
+	delete[] denoise_albedo;
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();

@@ -8,13 +8,13 @@ namespace Library
 	// properties
 
 	using precision = double;
-	const precision aspect_ratio = 16.0 / 9.0;
+	constexpr precision aspect_ratio = 16.0 / 9.0;
 
 	// constants
 
-	const precision infinity = std::numeric_limits<precision>::infinity();
-	const precision pi = 3.1415926535897932385;
-	const precision pi_inverse = 1.0 / pi;
+	constexpr precision infinity = std::numeric_limits<precision>::infinity();
+	constexpr precision pi = 3.1415926535897932385;
+	constexpr precision pi_inverse = 1.0 / pi;
 
 	// utility
 
@@ -25,8 +25,11 @@ namespace Library
 
 	inline precision get_random01()
 	{
-		static std::uniform_real_distribution<precision> distribution(0.0, 1.0);
-		static std::minstd_rand generator;
+		static std::random_device rnd;
+		static std::seed_seq seed{ rnd(), rnd(), rnd(), rnd(), rnd(), rnd(), rnd(), rnd() };
+		static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+		static std::minstd_rand generator{ seed };
+
 		return distribution(generator);
 	}
 

@@ -62,6 +62,9 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{b5065991-06dc-4921-80e1-1fc7241cb4c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External Libraries\oidn">
+      <UniqueIdentifier>{e03dbb8e-e5eb-4d85-82ba-dd30322db885}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="simplequad_ps.hlsl">
@@ -75,5 +78,13 @@
     <CopyFileToFolders Include="..\..\resources\Envisat_mosaic_May_-_November_2004.jpg">
       <Filter>Resources</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="..\..\libs\oidn\OpenImageDenoise.dll">
+      <Filter>External Libraries\oidn</Filter>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\libs\oidn\tbb12.dll">
+      <Filter>External Libraries\oidn</Filter>
+    </None>
   </ItemGroup>
 </Project>

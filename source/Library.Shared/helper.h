@@ -11,16 +11,20 @@
 
 namespace Library
 {
-	inline void write_color(std::uint8_t* out, const vec3& pixel_color, const precision& samples_inverse)
+	inline void write_color(std::uint8_t* out, float* out_float, const vec3& pixel_color, const precision& samples_inverse)
 	{
 		// sqrt for gamma 2.0 correction
-		out[0] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[0] * samples_inverse), 0, 0.999));
-		out[1] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[1] * samples_inverse), 0, 0.999));
-		out[2] = static_cast<std::uint8_t>(256 * clamp(std::sqrt(pixel_color._vec[2] * samples_inverse), 0, 0.999));
+		out_float[0] = static_cast<float>(clamp(std::sqrt(pixel_color._vec[0] * samples_inverse), 0, 0.999));
+		out_float[1] = static_cast<float>(clamp(std::sqrt(pixel_color._vec[1] * samples_inverse), 0, 0.999));
+		out_float[2] = static_cast<float>(clamp(std::sqrt(pixel_color._vec[2] * samples_inverse), 0, 0.999));
+
+		out[0] = static_cast<std::uint8_t>(256 * out_float[0]);
+		out[1] = static_cast<std::uint8_t>(256 * out_float[1]);
+		out[2] = static_cast<std::uint8_t>(256 * out_float[2]);
 		//out[3] = static_cast<std::uint8_t>(255);
 	}
 
-	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
+	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit, float* denoise_normal, float* denoise_albedo, bool first = true)
 	{
 		if (bounce_limit == 0) return color{ 0,0,0 };
 
@@ -31,10 +35,30 @@ namespace Library
 			color attenuation;
 			color emission = hitinfo.material->emitted(hitinfo.u, hitinfo.v, hitinfo.pos);
 
+			if (first)
+			{
+				vec3 normal = unit_vector(hitinfo.normal);
+				denoise_normal[0] = static_cast<float>(normal.x());
+				denoise_normal[1] = static_cast<float>(normal.y());
+				denoise_normal[2] = static_cast<float>(normal.z());
+				
+				vec3 albedo = hitinfo.material->denoise_albedo(hitinfo.u, hitinfo.v, hitinfo.pos);
+				denoise_albedo[0] = static_cast<float>(albedo.x());
+				denoise_albedo[1] = static_cast<float>(albedo.y());
+				denoise_albedo[2] = static_cast<float>(albedo.z());
+			}
+
 			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered))
-				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1);
+				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1, denoise_normal, denoise_albedo, false);
 			else
 				return emission;
+		}
+		
+		if (first)
+		{
+			denoise_normal[0] = 0.f;
+			denoise_normal[1] = 0.f;
+			denoise_normal[2] = 1.f;
 		}
 
 		return vec3{ 0,0,0 };

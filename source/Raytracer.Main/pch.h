@@ -13,3 +13,8 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include <tchar.h>
+
+#pragma warning (push, 0)
+#pragma warning(disable : 26439 26812)
+#include <oidn\oidn.hpp>
+#pragma warning (pop)
