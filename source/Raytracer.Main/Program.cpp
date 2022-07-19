@@ -115,7 +115,6 @@ int main(int, char**)
 	float* denoise_color = new float[img_width * img_height * 3];
 	float* denoise_normal = new float[img_width * img_height * 3];
 	float* denoise_albedo = new float[img_width * img_height * 3];
-	std::memset(denoise_albedo, 0, img_width * img_height * 3 * sizeof(float));
 
 #pragma region INIT DX11 & IMGUI
 
@@ -173,6 +172,14 @@ int main(int, char**)
 
 	BVHNode world_bvh{ world };
 
+#pragma endregion
+
+	// RENDER IMAGE
+	bool renderstarted = false;
+	std::unique_ptr<ThreadPool> threadpool = std::make_unique<ThreadPool>(std::max(std::thread::hardware_concurrency(), 2u) - 1u);
+
+#pragma region DeNoising
+
 	oidn::DeviceRef device = oidn::newDevice();
 	device.commit();
 
@@ -185,21 +192,34 @@ int main(int, char**)
 	filter.set("cleanAux", true);
 	filter.commit();
 
-	oidn::FilterRef albedoFilter = device.newFilter("RT"); // same filter type as for beauty
+	oidn::FilterRef albedoFilter = device.newFilter("RT");
 	albedoFilter.setImage("albedo", denoise_albedo, oidn::Format::Float3, img_width, img_height);
 	albedoFilter.setImage("output", denoise_albedo, oidn::Format::Float3, img_width, img_height);
 	albedoFilter.commit();
 
-	oidn::FilterRef normalFilter = device.newFilter("RT"); // same filter type as for beauty
+	oidn::FilterRef normalFilter = device.newFilter("RT");
 	normalFilter.setImage("normal", denoise_normal, oidn::Format::Float3, img_width, img_height);
 	normalFilter.setImage("output", denoise_normal, oidn::Format::Float3, img_width, img_height);
 	normalFilter.commit();
 
-#pragma endregion
+	for (std::size_t i = 0; i < img_height; ++i)
+	{
+		for (std::size_t ii = 0; ii < img_width; ++ii)
+		{
+			threadpool->EnqueueTask([&, i, ii]
+				{
+					precision u = (ii + .5f) / (img_width);
+					precision v = (img_height - i - .5f) / (img_height);
+					ray_color(camera.get_ray(u, v), world_bvh, &denoise_normal[(i * img_width + ii) * 3], &denoise_albedo[(i * img_width + ii) * 3]);
+				});
+		}
+	}
 
-	// RENDER IMAGE
-	bool renderstarted = false;
-	std::unique_ptr<ThreadPool> threadpool = std::make_unique<ThreadPool>(std::max(std::thread::hardware_concurrency(), 2u) - 1u);
+	albedoFilter.execute();
+	normalFilter.execute();
+	threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
+
+#pragma endregion
 
 	int gui_samplesperpixel = 32;
 	int gui_bouncelimit = 8;
@@ -256,7 +276,7 @@ int main(int, char**)
 									{
 										precision u = (ii + get_random01()) / (img_width - 1);
 										precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit), &denoise_normal[(i * img_width + ii) * 3], &denoise_albedo[(i * img_width + ii) * 3]);
+										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
 									}
 
 									write_color(&img_buffer[(i * img_width + ii) * 4], &denoise_color[(i * img_width + ii) * 3], pixel_color, samples_inverse);
@@ -285,13 +305,7 @@ int main(int, char**)
 
 				if (ImGui::Button("noizyboi"))
 				{
-					albedoFilter.execute();
-					normalFilter.execute();
 					filter.execute();
-
-					const char* errorMessage;
-					if (device.getError(errorMessage) != oidn::Error::None)
-						std::cout << "\n\nError: " << errorMessage << std::endl;
 
 					for (std::size_t i = 0; i < img_height; ++i)
 					{

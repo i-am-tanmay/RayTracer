@@ -24,7 +24,7 @@ namespace Library
 		//out[3] = static_cast<std::uint8_t>(255);
 	}
 
-	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit, float* denoise_normal, float* denoise_albedo, bool first = true)
+	color ray_color(const Ray& ray, const IRenderObject& world, std::size_t bounce_limit)
 	{
 		if (bounce_limit == 0) return color{ 0,0,0 };
 
@@ -35,30 +35,10 @@ namespace Library
 			color attenuation;
 			color emission = hitinfo.material->emitted(hitinfo.u, hitinfo.v, hitinfo.pos);
 
-			if (first)
-			{
-				vec3 normal = unit_vector(hitinfo.normal);
-				denoise_normal[0] = static_cast<float>(normal.x());
-				denoise_normal[1] = static_cast<float>(normal.y());
-				denoise_normal[2] = static_cast<float>(normal.z());
-				
-				vec3 albedo = hitinfo.material->denoise_albedo(hitinfo.u, hitinfo.v, hitinfo.pos);
-				denoise_albedo[0] = static_cast<float>(albedo.x());
-				denoise_albedo[1] = static_cast<float>(albedo.y());
-				denoise_albedo[2] = static_cast<float>(albedo.z());
-			}
-
 			if (hitinfo.material->scatter(ray, hitinfo, attenuation, ray_scattered))
-				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1, denoise_normal, denoise_albedo, false);
-			else
-				return emission;
-		}
-		
-		if (first)
-		{
-			denoise_normal[0] = 0.f;
-			denoise_normal[1] = 0.f;
-			denoise_normal[2] = 1.f;
+				return emission + attenuation * ray_color(ray_scattered, world, bounce_limit - 1);
+
+			return emission;
 		}
 
 		return vec3{ 0,0,0 };
@@ -67,5 +47,35 @@ namespace Library
 		//vec3 direction = unit_vector(ray.direction());
 		//precision t = 0.5 * (direction.y() + 1);
 		//return (1 - t) * color { 1, 1, 1 } + t * color{ 0.5, 0.7, 1.0 };	// lerp white to blue
+	}
+
+	void ray_color(const Ray& ray, const IRenderObject& world, float* denoise_normal, float* denoise_albedo)
+	{
+		HitInfo hitinfo;
+		if (world.hit(ray, 0.001, infinity, hitinfo))
+		{
+			Ray ray_scattered;
+			color attenuation;
+			color emission = hitinfo.material->emitted(hitinfo.u, hitinfo.v, hitinfo.pos);
+
+			vec3 normal = unit_vector(hitinfo.normal);
+			denoise_normal[0] = static_cast<float>(normal.x());
+			denoise_normal[1] = static_cast<float>(normal.y());
+			denoise_normal[2] = static_cast<float>(normal.z());
+
+			vec3 albedo = hitinfo.material->denoise_albedo(hitinfo.u, hitinfo.v, hitinfo.pos);
+			denoise_albedo[0] = static_cast<float>(albedo.x());
+			denoise_albedo[1] = static_cast<float>(albedo.y());
+			denoise_albedo[2] = static_cast<float>(albedo.z());
+
+		}
+
+		denoise_albedo[0] = 0.f;
+		denoise_albedo[1] = 0.f;
+		denoise_albedo[2] = 0.f;
+
+		denoise_normal[0] = 0.f;
+		denoise_normal[1] = 0.f;
+		denoise_normal[2] = 1.f;
 	}
 }
