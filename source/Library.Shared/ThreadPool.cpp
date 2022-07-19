@@ -85,6 +85,11 @@ namespace Library
 		_threadpool_notifier.notify_all();
 	}
 
+	bool ThreadPool::Empty() const
+	{
+		return _taskqueue.empty();
+	}
+
 	void ThreadPool::IdleWorker()
 	{
 		while (true)

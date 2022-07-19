@@ -27,6 +27,7 @@ namespace Library
 		void Pause();
 		void Stop();
 		void ClearPending();
+		bool Empty() const;
 
 	private:
 		void IdleWorker();

@@ -112,9 +112,14 @@ int main(int, char**)
 	std::uint8_t* img_buffer = new std::uint8_t[img_width * img_height * 4];
 	std::memset(img_buffer, 255, img_width * img_height * 4 * sizeof(std::uint8_t));
 
+	color* pixel_colors = new color[img_width * img_height];
+	std::memset(pixel_colors, 0, img_width * img_height * sizeof(color));
+
 	float* denoise_color = new float[img_width * img_height * 3];
 	float* denoise_normal = new float[img_width * img_height * 3];
 	float* denoise_albedo = new float[img_width * img_height * 3];
+
+	std::size_t current_samples = 0;
 
 #pragma region INIT DX11 & IMGUI
 
@@ -221,7 +226,6 @@ int main(int, char**)
 
 #pragma endregion
 
-	int gui_samplesperpixel = 32;
 	int gui_bouncelimit = 8;
 
 	// Main loop
@@ -261,46 +265,8 @@ int main(int, char**)
 				if (ImGui::Button("let us begin."))
 				{
 					renderstarted = true;
-
-					precision samples_inverse = 1.0 / gui_samplesperpixel;
-
-					for (std::size_t i = 0; i < img_height; ++i)
-					{
-						for (std::size_t ii = 0; ii < img_width; ++ii)
-						{
-							threadpool->EnqueueTask([&, i, ii, samples_inverse]
-								{
-									color pixel_color{ 0,0,0 };
-
-									for (int sample = 0; sample < gui_samplesperpixel; ++sample)
-									{
-										precision u = (ii + get_random01()) / (img_width - 1);
-										precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-										pixel_color += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
-									}
-
-									write_color(&img_buffer[(i * img_width + ii) * 4], &denoise_color[(i * img_width + ii) * 3], pixel_color, samples_inverse);
-								});
-						}
-					}
-				}
-
-				if (ImGui::Button("wallpaper engine."))
-				{
-					std::cout << "\ntime to write to file xo\n";
-					if (stbi_write_png("../../../../outputimage.png", img_width, img_height, 4, img_buffer, img_width * 4) == 0) std::cout << "couldn't write to PNG lolol";
-					else std::cout << "fin.\n";
-				}
-
-				ImGui::InputInt("Samples per Pixel", &gui_samplesperpixel);
-				ImGui::InputInt("Max Bounces", &gui_bouncelimit);
-			}
-			else
-			{
-				if (ImGui::Button("thats enough."))
-				{
-					renderstarted = false;
-					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
+					std::memset(pixel_colors, 0, img_width * img_height * sizeof(color));
+					current_samples = 0;
 				}
 
 				if (ImGui::Button("noizyboi"))
@@ -318,11 +284,52 @@ int main(int, char**)
 					}
 				}
 
-				g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
-				std::memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(std::uint8_t));
-				g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
+				if (ImGui::Button("wallpaper engine."))
+				{
+					std::cout << "\ntime to write to file xo\n";
+					if (stbi_write_png("../../../../outputimage.png", img_width, img_height, 4, img_buffer, img_width * 4) == 0) std::cout << "couldn't write to PNG lolol";
+					else std::cout << "fin.\n";
+				}
+
+				ImGui::InputInt("Max Bounces", &gui_bouncelimit);
+			}
+			else
+			{
+				if (threadpool->Empty())
+				{
+					threadpool->JoinAllTasks();
+					precision samples_inverse = 1.0 / ++current_samples;
+
+					for (std::size_t i = 0; i < img_height; ++i)
+					{
+						for (std::size_t ii = 0; ii < img_width; ++ii)
+						{
+							threadpool->EnqueueTask([&, i, ii, samples_inverse]
+								{
+									std::size_t cur_pixel = i * img_width + ii;
+
+									precision u = (ii + get_random01()) / (img_width - 1);
+									precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
+									pixel_colors[cur_pixel] += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+
+									write_color(&img_buffer[cur_pixel * 4], &denoise_color[cur_pixel * 3], pixel_colors[cur_pixel], samples_inverse);
+								});
+						}
+					}
+				}
+
+				if (ImGui::Button("thats enough."))
+				{
+					renderstarted = false;
+					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
+				}				
 			}
 
+			g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+			std::memcpy(mapped_resource.pData, img_buffer, img_width * img_height * 4 * sizeof(std::uint8_t));
+			g_pd3dDeviceContext->Unmap(img_buffer_resource, 0);
+
+			ImGui::Text("%d samples", current_samples);
 			ImGui::Text("%.3f ms / %.1f FPS", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 			ImGui::End();
