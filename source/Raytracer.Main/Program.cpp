@@ -295,24 +295,39 @@ int main(int, char**)
 			}
 			else
 			{
+				if (camera.WasUpdated())
+				{
+					std::memset(pixel_colors, 0, img_width * img_height * sizeof(color));
+					current_samples = 0;
+				}
+				
 				if (threadpool->Empty())
 				{
 					threadpool->JoinAllTasks();
 					precision samples_inverse = 1.0 / ++current_samples;
 
-					for (std::size_t i = 0; i < img_height; ++i)
+					for (std::size_t row = 0; row < img_height; row += 16)
 					{
-						for (std::size_t ii = 0; ii < img_width; ++ii)
+						for (std::size_t col = 0; col < img_width; col += 16)
 						{
-							threadpool->EnqueueTask([&, i, ii, samples_inverse]
+							threadpool->EnqueueTask([&, row, col, samples_inverse]
 								{
-									std::size_t cur_pixel = i * img_width + ii;
+									std::size_t max_row = std::min(row + 16, img_height);
+									std::size_t max_col = std::min(col + 16, img_width);
 
-									precision u = (ii + get_random01()) / (img_width - 1);
-									precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
-									pixel_colors[cur_pixel] += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+									for (std::size_t i = row; i < max_row; ++i)
+									{
+										for (std::size_t ii = col; ii < max_col; ++ii)
+										{
+											std::size_t cur_pixel = i * img_width + ii;
 
-									write_color(&img_buffer[cur_pixel * 4], &denoise_color[cur_pixel * 3], pixel_colors[cur_pixel], samples_inverse);
+											precision u = (ii + get_random01()) / (img_width - 1);
+											precision v = ((img_height - i - 1) + get_random01()) / (img_height - 1);
+											pixel_colors[cur_pixel] += ray_color(camera.get_ray(u, v), world_bvh, static_cast<std::size_t>(gui_bouncelimit));
+
+											write_color(&img_buffer[cur_pixel * 4], &denoise_color[cur_pixel * 3], pixel_colors[cur_pixel], samples_inverse);
+										}
+									}
 								});
 						}
 					}
