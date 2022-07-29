@@ -82,34 +82,103 @@ bool keys_move[4]{ false,false,false,false };
 precision rot_x;
 precision rot_y;
 
-void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int)
+void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 {
-	// cornell box
+	switch (which)
+	{
+		// cornell box
+	case 0:
+	{
+		std::shared_ptr<Material_Lambertian> red = std::make_shared<Material_Lambertian>(color(.65, .05, .05));
+		std::shared_ptr<Material_Lambertian> white = std::make_shared<Material_Lambertian>(color(.73, .73, .73));
+		std::shared_ptr<Material_Lambertian> green = std::make_shared<Material_Lambertian>(color(.12, .45, .15));
+		std::shared_ptr<Material_Light_Diffuse> light = std::make_shared<Material_Light_Diffuse>(color(15, 15, 15));
 
-	std::shared_ptr<Material_Lambertian> red = std::make_shared<Material_Lambertian>(color(.65, .05, .05));
-	std::shared_ptr<Material_Lambertian> white = std::make_shared<Material_Lambertian>(color(.73, .73, .73));
-	std::shared_ptr<Material_Lambertian> green = std::make_shared<Material_Lambertian>(color(.12, .45, .15));
-	std::shared_ptr<Material_Light_Diffuse> light = std::make_shared<Material_Light_Diffuse>(color(15, 15, 15));
+		world.push_back(std::make_shared<Rect_YZ>(0, 555, 0, 555, 555, green));
+		world.push_back(std::make_shared<Rect_YZ>(0, 555, 0, 555, 0, red));
+		world.push_back(std::make_shared<Rect_XZ>(0, 555, 0, 555, 0, white));
+		world.push_back(std::make_shared<Rect_XZ>(0, 555, 0, 555, 555, white));
+		world.push_back(std::make_shared<Rect_XY>(0, 555, 0, 555, 555, white));
 
-	world.push_back(std::make_shared<Rect_YZ>(0, 555, 0, 555, 555, green));
-	world.push_back(std::make_shared<Rect_YZ>(0, 555, 0, 555, 0, red));
-	world.push_back(std::make_shared<Rect_XZ>(0, 555, 0, 555, 0, white));
-	world.push_back(std::make_shared<Rect_XZ>(0, 555, 0, 555, 555, white));
-	world.push_back(std::make_shared<Rect_XY>(0, 555, 0, 555, 555, white));
+		std::shared_ptr<IRenderObject> cuboid_1 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 165, 165, white);
+		cuboid_1 = std::make_shared<Rotate_Y>(cuboid_1, -18);
+		cuboid_1 = std::make_shared<Translate>(cuboid_1, vec3{ 212.5, 82.5, 147.5 });
+		//cuboid_1 = std::make_shared<ConstantDensityMedium>(cuboid_1, color{ 1,1,1 }, .01);
+		world.push_back(cuboid_1);
 
-	std::shared_ptr<IRenderObject> cuboid_1 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 165, 165, white);
-	cuboid_1 = std::make_shared<Rotate_Y>(cuboid_1, -18);
-	cuboid_1 = std::make_shared<Translate>(cuboid_1, vec3{ 212.5, 82.5, 147.5 });
-	//cuboid_1 = std::make_shared<ConstantDensityMedium>(cuboid_1, color{ 1,1,1 }, .01);
-	world.push_back(cuboid_1);
+		std::shared_ptr<IRenderObject> cuboid_2 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 330, 165, white);
+		cuboid_2 = std::make_shared<Rotate_Y>(cuboid_2, 15);
+		cuboid_2 = std::make_shared<Translate>(cuboid_2, vec3{ 347.5, 165, 377.5 });
+		//cuboid_2 = std::make_shared<ConstantDensityMedium>(cuboid_2, color{ 0,0,0 }, .01);
+		world.push_back(cuboid_2);
 
-	std::shared_ptr<IRenderObject> cuboid_2 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 165, 330, 165, white);
-	cuboid_2 = std::make_shared<Rotate_Y>(cuboid_2, 15);
-	cuboid_2 = std::make_shared<Translate>(cuboid_2, vec3{ 347.5, 165, 377.5 });
-	//cuboid_2 = std::make_shared<ConstantDensityMedium>(cuboid_2, color{ 0,0,0 }, .01);
-	world.push_back(cuboid_2);
+		world.push_back(std::make_shared<Rect_XZ>(213, 343, 227, 332, 554, light));
+	}
+	break;
 
-	world.push_back(std::make_shared<Rect_XZ>(213, 343, 227, 332, 554, light));
+	case 1:
+	{
+		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
+		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
+
+		for (std::int32_t i = -11; i < 11; ++i)
+		{
+			for (std::int32_t ii = -11; ii < 11; ++ii)
+			{
+				precision choose_mat = get_random01();
+				pos3 center(i + 0.9 * get_random01(), 0.2, ii + 0.9 * get_random01());
+
+				if ((center - pos3(4, 0.2, 0)).length() > 0.9) {
+					std::shared_ptr<Material> sphere_material;
+
+					if (choose_mat < 0.2) {
+						// light
+						auto albedo = color::random() * color::random();
+						sphere_material = std::make_shared<Material_Light_Diffuse>(albedo);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.8) {
+						// diffuse
+						auto albedo = color::random() * color::random();
+						sphere_material = std::make_shared<Material_Lambertian>(albedo);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.95) {
+						// metal
+						auto albedo = color::random(0.5, 1);
+						auto fuzz = get_random(0, 0.5);
+						sphere_material = std::make_shared<Material_Metal>(albedo, fuzz);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+					else {
+						// glass
+						sphere_material = std::make_shared<Material_Dielectric>(1.5);
+						world.push_back(std::make_shared<Sphere>(center, 0.2, sphere_material));
+					}
+				}
+			}
+		}
+
+		std::shared_ptr<Material_Dielectric> material1 = std::make_shared<Material_Dielectric>(1.5);
+		world.push_back(std::make_shared<Sphere>(pos3(-4, 1, 0), 1.0, material1));
+
+		std::shared_ptr<Material_Lambertian> material2 = std::make_shared<Material_Lambertian>(color(0.4, 0.2, 0.1));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 1, 0), 1.0, material2));
+
+		std::shared_ptr<Material_Metal> material3 = std::make_shared<Material_Metal>(color(0.7, 0.6, 0.5), 0.0);
+		world.push_back(std::make_shared<Sphere>(pos3(4, 1, 0), 1.0, material3));
+
+		std::shared_ptr<ImageTexture> earth_texture = std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg");
+		std::shared_ptr<Material_Lambertian> earth_material = std::make_shared<Material_Lambertian>(earth_texture);
+		world.push_back(std::make_shared<Sphere>(pos3(3, 1, 2), 1.0, earth_material));
+
+		std::shared_ptr<Material> light = std::make_shared<Material_Light_Diffuse>(color{ 4, 4, 4 });
+		world.push_back(std::make_shared<Rect_XY>(2, 3, 0.5, 0.6, -3, light));
+		world.push_back(std::make_shared<Rect_XZ>(2.9, 3, 0, 1, 2, light));
+		world.push_back(std::make_shared<Rect_YZ>(0, 1, 1, 1.1, 5, light));
+	}
+	break;
+	}
 }
 
 int main(int, char**)
@@ -174,7 +243,7 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
-	Camera camera{ pos3 {278,278,-750}, 40.0 };
+	Camera camera{ pos3 {0,3,-10}, 40.0 };
 	std::vector<std::shared_ptr<IRenderObject>> world;
 	GetWorld(world, 0);
 
