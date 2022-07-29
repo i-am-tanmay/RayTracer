@@ -77,6 +77,11 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void ThrowIfFailed(HRESULT hr, const char* const message = "");
 
+// input
+bool keys_move[4]{ false,false,false,false };
+precision rot_x;
+precision rot_y;
+
 void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int)
 {
 	// cornell box
@@ -169,7 +174,7 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
-	Camera camera{ pos3 {278,278,-850}, pos3{278,278,0}, 40.0, vec3{0,1,0} };
+	Camera camera{ pos3 {278,278,-750}, 40.0 };
 	std::vector<std::shared_ptr<IRenderObject>> world;
 	GetWorld(world, 0);
 
@@ -207,23 +212,6 @@ int main(int, char**)
 	normalFilter.setImage("output", denoise_normal, oidn::Format::Float3, img_width, img_height);
 	normalFilter.commit();
 
-	for (std::size_t i = 0; i < img_height; ++i)
-	{
-		for (std::size_t ii = 0; ii < img_width; ++ii)
-		{
-			threadpool->EnqueueTask([&, i, ii]
-				{
-					precision u = (ii + .5f) / (img_width);
-					precision v = (img_height - i - .5f) / (img_height);
-					ray_color(camera.get_ray(u, v), world_bvh, &denoise_normal[(i * img_width + ii) * 3], &denoise_albedo[(i * img_width + ii) * 3]);
-				});
-		}
-	}
-
-	albedoFilter.execute();
-	normalFilter.execute();
-	threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
-
 #pragma endregion
 
 	int gui_bouncelimit = 8;
@@ -233,6 +221,9 @@ int main(int, char**)
 	while (!done)
 	{
 #pragma region Handle Messages
+
+		keys_move[0] = keys_move[1] = keys_move[2] = keys_move[3] = false;
+		rot_x = rot_y = 0;
 
 		MSG msg;
 		while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -271,6 +262,23 @@ int main(int, char**)
 
 				if (ImGui::Button("noizyboi"))
 				{
+					for (std::size_t i = 0; i < img_height; ++i)
+					{
+						for (std::size_t ii = 0; ii < img_width; ++ii)
+						{
+							threadpool->EnqueueTask([&, i, ii]
+								{
+									precision u = (ii + .5f) / (img_width);
+									precision v = (img_height - i - .5f) / (img_height);
+									ray_color(camera.get_ray(u, v), world_bvh, &denoise_normal[(i * img_width + ii) * 3], &denoise_albedo[(i * img_width + ii) * 3]);
+								});
+						}
+					}
+
+					albedoFilter.execute();
+					normalFilter.execute();
+					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
+
 					filter.execute();
 
 					for (std::size_t i = 0; i < img_height; ++i)
@@ -300,7 +308,7 @@ int main(int, char**)
 					std::memset(pixel_colors, 0, img_width * img_height * sizeof(color));
 					current_samples = 0;
 				}
-				
+
 				if (threadpool->Empty())
 				{
 					threadpool->JoinAllTasks();
@@ -333,11 +341,14 @@ int main(int, char**)
 					}
 				}
 
+				camera.Move(keys_move[0], keys_move[1], keys_move[2], keys_move[3]);
+				camera.Rotate(rot_x, rot_y);
+
 				if (ImGui::Button("thats enough."))
 				{
 					renderstarted = false;
 					threadpool.reset(new ThreadPool{ std::max(std::thread::hardware_concurrency(), 2u) - 1u });
-				}				
+				}
 			}
 
 			g_pd3dDeviceContext->Map(img_buffer_resource, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
@@ -655,6 +666,59 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case 0x41://A
+
+			keys_move[2] = true;
+
+			break;
+
+		case 0x44://D
+
+			keys_move[3] = true;
+
+			break;
+
+		case 0x57://W
+
+			keys_move[0] = true;
+
+			break;
+
+		case 0x53://S
+
+			keys_move[1] = true;
+
+			break;
+
+		case VK_LEFT:
+
+			rot_x = -1;
+
+			break;
+
+		case VK_RIGHT:
+
+			rot_x = 1;
+
+			break;
+
+		case VK_UP:
+
+			rot_y = -1;
+
+			break;
+
+		case VK_DOWN:
+
+			rot_y = 1;
+
+			break;
+		}
+		break;
+
 	case WM_SIZE:
 		if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 		{

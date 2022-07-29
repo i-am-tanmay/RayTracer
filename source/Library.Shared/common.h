@@ -20,7 +20,7 @@ namespace Library
 
 	inline precision degrees_to_radians(precision degrees)
 	{
-		return degrees * pi / 180.0;
+		return degrees * pi * 0.0055555555555556;
 	}
 
 	inline precision get_random01()
