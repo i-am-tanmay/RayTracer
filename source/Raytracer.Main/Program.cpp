@@ -86,7 +86,7 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 {
 	switch (which)
 	{
-		// cornell box
+	// cornell box
 	case 0:
 	{
 		std::shared_ptr<Material_Lambertian> red = std::make_shared<Material_Lambertian>(color(.65, .05, .05));
@@ -178,6 +178,47 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 		world.push_back(std::make_shared<Rect_YZ>(0, 1, 1, 1.1, 5, light));
 	}
 	break;
+
+	case 2:
+
+		//std::shared_ptr<Material_Lambertian> ground = std::make_shared<Material_Lambertian>(color(0.48, 0.83, 0.53));
+		std::shared_ptr<Material_Metal> ground = std::make_shared<Material_Metal>(color(0.48, 0.83, 0.53), 0.0);
+		const precision size = 100.0;
+		for (std::size_t i = 0; i < 20; ++i)
+		{
+			for (std::size_t ii = 0; ii < 20; ++ii)
+			{
+				pos3 pos{
+					-1000.0 + i * size,
+					50.0,
+					-1000.0 + ii * size
+				};
+
+				world.push_back(std::make_shared<Cuboid>(pos, size, get_random(1, 101), size, ground));
+			}
+		}
+
+		std::shared_ptr<Material_Light_Diffuse> light = std::make_shared<Material_Light_Diffuse>(color(7, 7, 7));
+		world.push_back(std::make_shared<Rect_XZ>(123, 423, 147, 412, 554, light));
+
+		world.push_back(std::make_shared<Sphere>(pos3(260, 150, 45), 50, std::make_shared<Material_Dielectric>(1.5)));
+		world.push_back(std::make_shared<Sphere>(pos3(0, 150, 145), 50, std::make_shared<Material_Metal>(color(0.8, 0.8, 0.9), 1.0)));
+
+		std::shared_ptr<Sphere> ball = std::make_shared<Sphere>(pos3(360, 150, 145), 70, std::make_shared<Material_Dielectric>(1.5));
+		world.push_back(ball);
+		world.push_back(std::make_shared<ConstantDensityMedium>(ball, color(0.2, 0.4, 0.9), 0.2));
+
+		std::shared_ptr<Sphere> boundary = std::make_shared<Sphere>(pos3(0, 0, 0), 5000, std::make_shared<Material_Dielectric>(1.5));
+		world.push_back(std::make_shared<ConstantDensityMedium>(boundary, color(1, 1, 1), .0001));
+
+		std::shared_ptr<Material_Lambertian> earth = std::make_shared<Material_Lambertian>(std::make_shared<ImageTexture>("Resources/Envisat_mosaic_May_-_November_2004.jpg"));
+		world.push_back(std::make_shared<Sphere>(pos3(400, 200, 400), 100, earth));
+
+		std::shared_ptr<Material_Metal> metal = std::make_shared<Material_Metal>(color(.73, .73, .73), 0.0);
+		for (std::size_t i = 0; i < 1000; ++i)
+			world.push_back(std::make_shared<Translate>(std::make_shared<Sphere>(pos3::random(0, 165), 10, metal), vec3(-100, 270, 395)));
+
+		break;
 	}
 }
 
@@ -243,9 +284,10 @@ int main(int, char**)
 #pragma region RayTracing
 
 	// WORLD
-	Camera camera{ pos3 {0,3,-10}, 40.0 };
+	Camera camera{ pos3 {278,278,-850}, 40.0 };
+	//Camera camera{ pos3 {0,3,-10}, 40.0 };
 	std::vector<std::shared_ptr<IRenderObject>> world;
-	GetWorld(world, 0);
+	GetWorld(world, 2);
 
 	// // --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -329,7 +371,7 @@ int main(int, char**)
 					current_samples = 0;
 				}
 
-				if (ImGui::Button("noizyboi"))
+				if (ImGui::Button("rtx on."))
 				{
 					for (std::size_t i = 0; i < img_height; ++i)
 					{
