@@ -62,16 +62,16 @@ namespace Library
 					precision y = ii * out_aabb.max().y() + (1 - ii) * out_aabb.min().y();
 					precision z = iii * out_aabb.max().z() + (1 - iii) * out_aabb.min().z();
 
-					precision x_new = cos_angle * x + sin_angle * z;
-					precision z_new = -sin_angle * x + cos_angle * z;
+					precision y_new = cos_angle * y - sin_angle * z;
+					precision z_new = sin_angle * y + cos_angle * z;
 
-					vec3 aabb_new{ x_new, y, z_new };
+					vec3 aabb_new{ x, y_new, z_new };
 
 					min = vec3{ std::min(min.x(), aabb_new.x()),std::min(min.y(), aabb_new.y()) ,std::min(min.z(), aabb_new.z()) };
 					max = vec3{ std::max(max.x(), aabb_new.x()),std::max(max.y(), aabb_new.y()) ,std::max(max.z(), aabb_new.z()) };
 				}
 
-		out_box = out_aabb;
+		out_box = AABB{ min,max };
 		return result;
 	}
 
@@ -148,7 +148,7 @@ namespace Library
 					max = vec3{ std::max(max.x(), aabb_new.x()),std::max(max.y(), aabb_new.y()) ,std::max(max.z(), aabb_new.z()) };
 				}
 
-		out_box = out_aabb;
+		out_box = AABB{ min,max };
 		return result;
 	}
 
@@ -216,16 +216,16 @@ namespace Library
 					precision y = ii * out_aabb.max().y() + (1 - ii) * out_aabb.min().y();
 					precision z = iii * out_aabb.max().z() + (1 - iii) * out_aabb.min().z();
 
-					precision x_new = cos_angle * x + sin_angle * z;
-					precision z_new = -sin_angle * x + cos_angle * z;
+					precision x_new = cos_angle * x - sin_angle * y;
+					precision y_new = sin_angle * x + cos_angle * y;
 
-					vec3 aabb_new{ x_new, y, z_new };
+					vec3 aabb_new{ x_new, y_new, z };
 
 					min = vec3{ std::min(min.x(), aabb_new.x()),std::min(min.y(), aabb_new.y()) ,std::min(min.z(), aabb_new.z()) };
 					max = vec3{ std::max(max.x(), aabb_new.x()),std::max(max.y(), aabb_new.y()) ,std::max(max.z(), aabb_new.z()) };
 				}
 
-		out_box = out_aabb;
+		out_box = AABB{ min,max };
 		return result;
 	}
 

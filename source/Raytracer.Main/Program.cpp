@@ -86,8 +86,35 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 {
 	switch (which)
 	{
-	// cornell box
 	case 0:
+	{
+		// bg
+		std::shared_ptr<Material_Light_Diffuse> light = std::make_shared<Material_Light_Diffuse>(color(1, 1, 1));
+		world.push_back(std::make_shared<Sphere>(vec3{ 278,278,0 }, 10000, light));
+
+		std::shared_ptr<Material_Lambertian> red = std::make_shared<Material_Lambertian>(color(.65, .05, .05));
+		std::shared_ptr<Material_Lambertian> blue = std::make_shared<Material_Lambertian>(color(.05, .05, .65));
+		std::shared_ptr<Material_Lambertian> green = std::make_shared<Material_Lambertian>(color(.05, .65, .05));
+
+		std::shared_ptr<IRenderObject> cuboid_1 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 100, 100, 100, red);
+		cuboid_1 = std::make_shared<Rotate_X>(cuboid_1, 35);
+		cuboid_1 = std::make_shared<Translate>(cuboid_1, vec3{ 128, 278, 200 });
+		world.push_back(cuboid_1);
+
+		std::shared_ptr<IRenderObject> cuboid_2 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 100, 100, 100, blue);
+		cuboid_2 = std::make_shared<Rotate_Y>(cuboid_2, 35);
+		cuboid_2 = std::make_shared<Translate>(cuboid_2, vec3{ 278, 278, 200 });
+		world.push_back(cuboid_2);
+
+		std::shared_ptr<IRenderObject> cuboid_3 = std::make_shared<Cuboid>(vec3{ 0,0,0 }, 100, 100, 100, green);
+		cuboid_3 = std::make_shared<Rotate_Z>(cuboid_3, 35);
+		cuboid_3 = std::make_shared<Translate>(cuboid_3, vec3{ 428, 278, 200 });
+		world.push_back(cuboid_3);
+	}
+	break;
+
+	// cornell box
+	case 1:
 	{
 		std::shared_ptr<Material_Lambertian> red = std::make_shared<Material_Lambertian>(color(.65, .05, .05));
 		std::shared_ptr<Material_Lambertian> white = std::make_shared<Material_Lambertian>(color(.73, .73, .73));
@@ -116,7 +143,7 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 	}
 	break;
 
-	case 1:
+	case 2:
 	{
 		std::shared_ptr<Material_Lambertian> ground_material = std::make_shared<Material_Lambertian>(color(0.5, 0.5, 0.5));
 		world.push_back(std::make_shared<Sphere>(pos3(0, -1000, 0), 1000, ground_material));
@@ -179,7 +206,7 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 	}
 	break;
 
-	case 2:
+	case 3:
 
 		//std::shared_ptr<Material_Lambertian> ground = std::make_shared<Material_Lambertian>(color(0.48, 0.83, 0.53));
 		std::shared_ptr<Material_Metal> ground = std::make_shared<Material_Metal>(color(0.48, 0.83, 0.53), 0.0);
@@ -216,7 +243,7 @@ void GetWorld(std::vector<std::shared_ptr<IRenderObject>>& world, int which)
 
 		std::shared_ptr<Material_Metal> metal = std::make_shared<Material_Metal>(color(.73, .73, .73), 0.0);
 		for (std::size_t i = 0; i < 1000; ++i)
-			world.push_back(std::make_shared<Translate>(std::make_shared<Sphere>(pos3::random(0, 165), 10, metal), vec3(-100, 270, 395)));
+			world.push_back(std::make_shared<Rotate_Y>(std::make_shared<Translate>(std::make_shared<Sphere>(pos3::random(0, 165), 10, metal), vec3(-100, 270, 395)), 15));
 
 		break;
 	}
@@ -287,7 +314,7 @@ int main(int, char**)
 	Camera camera{ pos3 {278,278,-850}, 40.0 };
 	//Camera camera{ pos3 {0,3,-10}, 40.0 };
 	std::vector<std::shared_ptr<IRenderObject>> world;
-	GetWorld(world, 2);
+	GetWorld(world, 3);
 
 	// // --------------------------------------------------------------------------------------------------------------------------------------
 
